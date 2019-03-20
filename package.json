@@ -4,15 +4,15 @@
     "email": ""
   },
   "dependencies": {
-    "body-parser": "^1.18.2",
-    "express": "^4.16.2",
-    "serve-static": "^1.13.1",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "serve-static": "^1.13.2",
     "ws": "^2.3.1"
   },
   "description": "Marker detection in the iamge from camera.",
   "engines": {
-    "node": "8.9.4",
-    "npm": "5.6.0"
+    "node": "10.15.3",
+    "npm": "6.9.0"
   },
   "main": "server.js",
   "name": "MarkerDetection",
