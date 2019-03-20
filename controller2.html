@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en-GB" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Controller</title>
+<link rel="stylesheet" type="text/css" href="/css/controller.css">
+<script type="text/javascript" src="/js/transforms3d.js"></script>
+<script type="text/javascript" src="/js/webgl-utils.js"></script>
+<script type="text/javascript" src="/js/sender.js"></script>
+<script type="text/javascript" src="/js/detection2.js"></script>
+<script type="text/javascript" src="/js/rotation.js"></script>
+<script type="text/javascript" src="/js/motion.js"></script>
+<script type="text/javascript" src="/js/helpers.js"></script>
+<script id="shader-fs3" type="x-shader/x-fragment">
+precision highp float;
+
+uniform sampler2D texture;
+uniform float width;
+uniform float height;
+
+const float thresholdG = 0.6;
+const float thresholdRB = 0.4;
+
+int interestingPixel(vec2 texCoords) {
+	vec4 pixel = texture2D(texture, texCoords);
+	if (pixel.r < thresholdRB && pixel.g > thresholdG && pixel.b < thresholdRB) {
+	//if (pixel.r > 0.5) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+void main(void) {
+	int sum = 0;
+	int product = 0;
+	// rows are read from the second row
+	// if (int(gl_FragCoord.x) == 0) {
+	if (int(gl_FragCoord.y) == 1) {
+		for (float i = 0.5; i <= 1280.5; i++) { // do rows
+			if (i > width) break;
+			if (gl_FragCoord.x / height >= 1.0) break;
+			//vec2 texCoords = vec2(i / width, gl_FragCoord.y / height);
+			vec2 texCoords = vec2(i / width, gl_FragCoord.x / height);
+			if (interestingPixel(texCoords) == 1) {
+				sum++;
+			}
+		}
+	// columns are read from the first row and are written to first row
+	} else if (int(gl_FragCoord.y) == 0) { // do columns
+		for (float i = 0.5; i <= 720.5; i++) {
+			if (i > height) break;
+			if (gl_FragCoord.x / width >= 1.0) break;
+			vec2 texCoords = vec2(gl_FragCoord.x / width, i / height);
+			if (interestingPixel(texCoords) == 1) {
+				sum++;
+			}
+		}
+	} else {
+		discard;
+	}
+
+	gl_FragColor = vec4(sum, float(sum) * (gl_FragCoord.x + 0.5), 0, 0);
+}
+</script>
+<script id="shader-fs4" type="x-shader/x-fragment">
+precision highp float;
+
+uniform sampler2D texture;
+uniform float width;
+uniform float height;
+
+void main(void) {
+	float sum = 0.0;
+	float sumAll = 0.0;
+	float count = 0.0;
+	for (float i = 0.5; i <= 1280.5; i++) {
+		if (i > max(width, height)) break;
+		vec2 texCoords = vec2(i / max(width, height), gl_FragCoord.y / 2.0);
+		vec4 pixel = texture2D(texture, texCoords);
+		if (pixel.r > 0.5) {
+			sum += pixel.r;
+			sumAll += pixel.g;
+			count++;
+		}
+	}
+	float coord = (sum == 0.0) ? 0.0 : sumAll / sum;
+
+	gl_FragColor = vec4(coord, sumAll, sum, count);
+}
+</script>
+<script id="shader-vs3" type="x-shader/x-vertex">
+	attribute vec3 aVertexPosition;
+
+	void main(void) {
+		gl_Position = vec4(aVertexPosition, 1.0);
+	}
+</script>
+<script id="shader-fs-draw" type="x-shader/x-fragment">
+	precision mediump float;
+
+	uniform sampler2D texture;
+	uniform sampler2D coordTexture;
+	//uniform float xCoord;
+	//uniform float yCoord;
+
+	varying vec2 textureCoord;
+
+	void main(void) {
+		float xCoord = texture2D(coordTexture, vec2(0.5, 0.25)).r;
+		float yCoord = texture2D(coordTexture, vec2(0.5, 0.75)).r;
+		//gl_FragColor = vec4(xCoord, yCoord, 0, 1);
+
+		float red = (gl_FragCoord.x > xCoord - 4.0 && gl_FragCoord.x < xCoord + 4.0) ? 1.0 : 0.0;
+		float green = (gl_FragCoord.y > yCoord - 4.0 && gl_FragCoord.y < yCoord + 4.0) ? 1.0 : 0.0;
+
+		if ((red > 0.0 || green > 0.0) && xCoord > 0.0 && yCoord > 0.0)  gl_FragColor = vec4(red, green, 0, 1);
+		else gl_FragColor = texture2D(texture, textureCoord);
+	}
+</script>
+<script id="shader-vs-draw" type="x-shader/x-vertex">
+	attribute vec3 aVertexPosition;
+	attribute vec2 aTextureCoord;
+
+	uniform mat4 rotation;
+
+	varying vec2 textureCoord;
+
+	void main(void) {
+		textureCoord = aTextureCoord;
+		gl_Position = rotation * vec4(aVertexPosition, 1.0);
+	}
+</script>
+<script type="text/javascript">
+	"use strict";
+
+	// HTMLVideoElement
+	var video;
+	// info if detection is being performed - if animation is running
+	// also is used to make sure that animation is running only once
+	var isAnimating = false;
+
+	window.onload = function() {
+		let initResult = Detection.init();
+
+		if (!initResult) {
+			alert("Your browser does not support WebGL.")
+			document.querySelector(".loading").innerHTML = "Your browser does not support WebGL or some of its extensions.";
+			return;
+		}
+
+		// set video listener, important for starting animation
+		video = document.querySelector("video");
+		video.addEventListener("canplaythrough", setupAfterVideoStreamIsReady, false);
+		video.addEventListener("click", sendTouch, false);
+
+		// set change and click listeners
+		document.querySelector("label#all").addEventListener("click", doAll, false);
+		document.querySelector("label#none").addEventListener("click", doNone, false);
+		document.querySelector("label#position input").addEventListener("change", doPosition, false);
+		document.querySelector("label#rotation input").addEventListener("change", doRotation, false);
+		document.querySelector("label#motion input").addEventListener("change", doMotion, false);
+
+		// window size listener for changing layout
+		// checks which one of height or width is bigger and changes the layout appropriately
+		window.addEventListener("resize", windowSizeChanged, false);
+		windowSizeChanged();
+
+		// init requestAnimFrame function
+		Utils.initRequestAnimationFrame();
+
+		// init Rotation object
+		Rotation.init();
+		// let the user know that the rotation of device is correct
+		Rotation.setCustomFunction(function(data) {
+			Helpers.checkRotation(data, function rotationToRight() {
+				document.querySelector(".controls").style.backgroundColor = "lightblue";
+			}, function rotationToLeft() {
+				document.querySelector(".controls").style.backgroundColor = "lightblue";
+			}, function noRotation() {
+				document.querySelector(".controls").style.backgroundColor = "white";
+			});
+		});
+
+		// init Motion object
+		Motion.init();
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+		// get access to camera
+		navigator.mediaDevices.getUserMedia({
+			audio: false,
+			video: { width: 1280, height: 720, facingMode: "environment" }
+			/*video: {
+				width: { min: 720, ideal: 1024, max: 1280 },
+				height: { min: 540, max: 720 },
+				//prefer rear camera
+				facingMode: "environment"
+			}*/
+		}).then(function(stream) {
+			video.srcObject = stream;
+		}).catch(function(error) {
+			let msg = "";
+			if (error.name === "ConstraintNotSatisfiedError" || error.name === "NotFoundError") {
+				msg = "Your camera does not meet required resolution for this application to work.";
+			} else if (error.name === "TrackStartError") {
+				msg = "Your camera is probably used by different application at this time.";
+			} else {
+				msg = "There was an unknown error when accessing your camera.";
+			}
+			document.querySelector(".loading").innerHTML = msg;
+			alert(msg);
+			console.log("%cVideo Error: " + error, 'color: red');
+			console.log(msg);
+		});
+	};
+
+	/**
+	 * Main animation function that triggers detection in the image from camera
+	 */
+	function animate() {
+		if (isAnimating) {
+			Detection.updateTexture(video);
+			Detection.repaint();
+			requestAnimFrame(animate);
+		}
+	}
+
+	/**
+	 * Event handler when camera is ready to give pictures
+	 */
+	function setupAfterVideoStreamIsReady() {
+		Detection.setupAfterVideoStreamIsReady(video.videoWidth, video.videoHeight);
+
+		// hide loading message
+		document.querySelector(".loading-container").classList.add("hidden");
+		document.querySelector(".main").classList.remove("hidden");
+	}
+
+	/**
+	 * Event handler for starting all operations
+	 */
+	function doAll() {
+		document.querySelector("#all").classList.add("pulse");
+		setTimeout(function() {
+			document.querySelector("#all").classList.remove("pulse");
+		}, 600);
+
+		document.querySelector("label#position input").checked = true;
+		document.querySelector("label#rotation input").checked = true;
+		document.querySelector("label#motion input").checked = true;
+		doPosition();
+		doRotation();
+		doMotion();
+	}
+
+	/**
+	 * Event handler for stopping all operations
+	 */
+	function doNone() {
+		document.querySelector("#none").classList.add("pulse");
+		setTimeout(function() {
+			document.querySelector("#none").classList.remove("pulse");
+		}, 600);
+
+		document.querySelector("label#position input").checked = false;
+		document.querySelector("label#rotation input").checked = false;
+		document.querySelector("label#motion input").checked = false;
+		doPosition();
+		doRotation();
+		doMotion();
+	}
+
+	/**
+	 * Event handler when position button is clicked
+	 */
+	function doPosition() {
+		if (document.querySelector("label#position input").checked) {
+			document.querySelector("label#position").classList.add("active");
+			if (!isAnimating) {
+				isAnimating = true;
+				Detection.restart();
+				animate();
+			}
+		} else {
+			document.querySelector("label#position").classList.remove("active");
+			Detection.finish();
+			isAnimating = false;
+		}
+	}
+
+	/**
+	 * Event handler when rotation button is clicked
+	 */
+	function doRotation() {
+		if (document.querySelector("label#rotation input").checked) {
+			document.querySelector("label#rotation").classList.add("active");
+			Rotation.start();
+		} else {
+			document.querySelector("label#rotation").classList.remove("active");
+			Rotation.finish();
+		}
+	}
+
+	/**
+	 * Event handler when motion button is clicked
+	 */
+	function doMotion() {
+		if (document.querySelector("label#motion input").checked) {
+			document.querySelector("label#motion").classList.add("active");
+			Motion.start();
+		} else {
+			document.querySelector("label#motion").classList.remove("active");
+			Motion.finish();
+		}
+	}
+
+	/**
+	 * Resize event handler
+	 * Changes GUI so that buttons are either right or bottom
+	 */
+	function windowSizeChanged() {
+		if (window.innerHeight < window.innerWidth) {
+			// window is wider than higher
+			document.querySelector(".main").classList.remove("bottom");
+			document.querySelector(".main").classList.add("right");
+		} else {
+			// window is higher than wider
+			document.querySelector(".main").classList.remove("right");
+			document.querySelector(".main").classList.add("bottom");
+		}
+	}
+
+	/**
+	 * Click and touch event handler
+	 * Sends information that the video has been clicked or touched
+	 */
+	function sendTouch() {
+		let obj = {
+			type: "touch",
+			time: new Date().getTime()
+		};
+		Sender.add(obj);
+	}
+
+	/**
+	 * Helper method for sending test data
+	 */
+	function testSend() {
+		let request = new XMLHttpRequest();
+		request.open('POST', '/ajax/data');
+		request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+		let data = [{
+			type: "test",
+			time: new Date().getTime()
+		}];
+		request.send(JSON.stringify(data));
+	}
+
+</script>
+
+</head>
+<body>
+<div class="loading-container">
+	<div class="loading">
+		Loading, please wait...<br>
+		Access to your camera is required for this appplication to work.<br>
+		You might be asked for giving a permissison to access it.
+	</div>
+</div>
+<div class="main hidden">
+	<div class="center">
+		<canvas></canvas>
+		<video src="" autoplay muted></video>
+	</div>
+	<div class="controls">
+		<label id="all">Check all</label><br>
+		<label id="none">Uncheck all</label><br>
+		<hr>
+		<label id="position"><input type="checkbox"> Position</label><br>
+		<label id="rotation"><input type="checkbox"> Rotation</label><br>
+		<label id="motion"><input type="checkbox"> Motion</label>
+	</div>
+</div>
+</body>
+</html>
