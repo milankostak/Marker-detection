@@ -1,0 +1,50 @@
+precision highp float;
+
+uniform sampler2D texture;
+uniform float width;
+uniform float height;
+
+const float thresholdG = 0.6;
+const float thresholdRB = 0.4;
+
+int interestingPixel(vec2 texCoords) {
+	vec4 pixel = texture2D(texture, texCoords);
+	if (pixel.r < thresholdRB && pixel.g > thresholdG && pixel.b < thresholdRB) {
+	//if (pixel.r > 0.5) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+void main(void) {
+	int sum = 0;
+	int product = 0;
+	// rows are read from the second row
+	// if (int(gl_FragCoord.x) == 0) {
+	if (int(gl_FragCoord.y) == 1) {
+		for (float i = 0.5; i <= 1280.5; i++) { // do rows
+			if (i > width) break;
+			if (gl_FragCoord.x / height >= 1.0) break;
+			//vec2 texCoords = vec2(i / width, gl_FragCoord.y / height);
+			vec2 texCoords = vec2(i / width, gl_FragCoord.x / height);
+			if (interestingPixel(texCoords) == 1) {
+				sum++;
+			}
+		}
+	// columns are read from the first row and are written to first row
+	} else if (int(gl_FragCoord.y) == 0) { // do columns
+		for (float i = 0.5; i <= 720.5; i++) {
+			if (i > height) break;
+			if (gl_FragCoord.x / width >= 1.0) break;
+			vec2 texCoords = vec2(gl_FragCoord.x / width, i / height);
+			if (interestingPixel(texCoords) == 1) {
+				sum++;
+			}
+		}
+	} else {
+		discard;
+	}
+
+	gl_FragColor = vec4(sum, float(sum) * (gl_FragCoord.x + 0.5), 0, 0);
+}

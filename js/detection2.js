@@ -172,7 +172,7 @@ var Detection = (function() {
 	 */
 	function initPrograms() {
 		program3 = gl.createProgram();
-		Utils.initShaders(gl, program3, "shader-vs3", "shader-fs3");
+		Utils.initShaders(gl, program3, "/shaders/main.vert", "/shaders/step1.frag", true);
 		gl.linkProgram(program3);
 		gl.useProgram(program3);
 
@@ -182,7 +182,7 @@ var Detection = (function() {
 		program3.height = gl.getUniformLocation(program3, "height");
 
 		program4 = gl.createProgram();
-		Utils.initShaders(gl, program4, "shader-vs3", "shader-fs4");
+		Utils.initShaders(gl, program4, "/shaders/main.vert", "/shaders/step2.frag", true);
 		gl.linkProgram(program4);
 		gl.useProgram(program4);
 
@@ -193,7 +193,7 @@ var Detection = (function() {
 
 		// basic draw program, doesn't do anything special in shaders
 		programDraw = gl.createProgram();
-		Utils.initShaders(gl, programDraw, "shader-vs-draw", "shader-fs-draw");
+		Utils.initShaders(gl, programDraw, "/shaders/draw.vert", "/shaders/draw.frag", true);
 		gl.linkProgram(programDraw);
 		gl.useProgram(programDraw);
 
