@@ -70,22 +70,21 @@ const Detection = (function() {
 		initBuffers();
 		if (MEASURE_TIME) initTimeMeasurement();
 		
-		let img = new Image();
+		/*let img = new Image();
 		img.src = "integral1.png";
 		img.onload = function () {
 			setupAfterLoad(img);
 			refreshTexture(img);
 			Detection.repaint();
-		};
+		};*/
 
 		return true;
 	};
-
+/*
 	function setupAfterLoad(img) {
 		width = canvas.width = img.width;
 		height = canvas.height = img.height;
 
-		//let arraySize = Math.ceil(width * height * 4);
 		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
 		readBuffer = new Float32Array(arraySize);
 		readBuffer2 = new Float32Array(2 * 4);
@@ -101,7 +100,7 @@ const Detection = (function() {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	}
-
+*/
 	/**
 	 * Init canvas and gl and get texture precision from extension
 	 * @private
@@ -288,7 +287,6 @@ const Detection = (function() {
 
 		// allocate readBuffer for reading pixels
 		// do it now, because it is time consuming operation
-		//let arraySize = Math.ceil(width * height * 4);
 		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
 		readBuffer = new Float32Array(arraySize);
 		readBuffer2 = new Float32Array(2 * 4); // 2 pixels
@@ -433,8 +431,6 @@ const Detection = (function() {
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
 
 		gl.viewport(0, 0, width, height);
-		//gl.uniform1f(programDraw.xCoord, xCoord);
-		//gl.uniform1f(programDraw.yCoord, yCoord);
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
@@ -461,7 +457,7 @@ const Detection = (function() {
 		const realWidth = Math.max(width, height);
 		// https://stackoverflow.com/questions/28282935/working-around-webgl-readpixels-being-slow
 		gl.readPixels(0, 0, realWidth, 2, gl.RGBA, gl.FLOAT, readBuffer);
-		console.log(readBuffer);
+		//console.log(readBuffer);
 		if (MEASURE_TIME) window.performance.mark("a");
 
 		let sumRow = 0, sumRowAll = 0;
@@ -469,8 +465,6 @@ const Detection = (function() {
 			let value = readBuffer[i];
 			if (value > 0.5) {
 				sumRow += value;
-				//sumRowAll += value * ((i / (width * 4)) + 1);
-				//sumRowAll += value * (((i - realWidth*4) / 4) + 1);
 				sumRowAll += readBuffer[i + 1];
 			}
 		}
@@ -481,7 +475,6 @@ const Detection = (function() {
 			let value = readBuffer[i];
 			if (value > 0.5) {
 				sumCol += value;
-				//sumColAll += value * ((i / 4) + 1);
 				sumColAll += readBuffer[i + 1];
 			}
 		}
@@ -489,7 +482,6 @@ const Detection = (function() {
 
 		console.log(xCoord, sumColAll, sumCol, "xCoord, col");
 		console.log(yCoord, sumRowAll, sumRow, "yCoord, row");
-		//console.log(xCoord, yCoord);
 
 		//send({max: 100, x: xCoord, y: 720-yCoord, count: 1});
 	}
