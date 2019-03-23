@@ -85,7 +85,7 @@
 			} else if (error.name === "TrackStartError") {
 				msg = "Your camera is probably used by different application at this time.";
 			} else {
-				msg = "There was an unknown error when accessing your camera.";
+				msg = "There was an unknown error when accessing your camera.\nError message:\n" + error;
 			}
 			document.querySelector(".loading").innerHTML = msg;
 			alert(msg);

@@ -12,14 +12,14 @@
  * @author Milan Košťák
  * @version 2.0
  */
-var Detection = (function() {
+const Detection = (function() {
 
 	/**
 	 * Main object which is exported into public Detection variable.
 	 * @public
 	 * @type {Object}
 	 */
-	let Detection = {};
+	const Detection = {};
 
 	// HTMLCanvasElement
 	let canvas;
@@ -112,7 +112,7 @@ var Detection = (function() {
 
 		// if WebGL2 is not supported try to fall-back to version 1
 		if (!gl) {
-			gl = canvas.getContext("experimental-webgl");
+			gl = canvas.getContext("experimental-webgl", {antialias:false});
 
 			// even WebGL1 is not supported - not much to do without it
 			if (!gl) {
@@ -324,7 +324,7 @@ var Detection = (function() {
 			window.performance.mark("a");
 		}
 	///
-	/// 1. step: first draw operation
+	/// 1. step: sum all interesting pixels in every row and column
 	///
 		gl.useProgram(program3);
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -371,7 +371,7 @@ var Detection = (function() {
 		if (MEASURE_TIME) window.performance.mark("a");
 		//readData();
 	///
-	/// 2. step
+	/// 2. step: find marker
 	///
 		gl.useProgram(program4);
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -397,8 +397,6 @@ var Detection = (function() {
 		// bind input texture
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
-
-		// draw from input texture to FB texture
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
