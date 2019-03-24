@@ -19,21 +19,18 @@ int interestingPixel(vec2 texCoords) {
 
 void main(void) {
 	int sum = 0;
-	int product = 0;
-	// rows are read from the second row
-	// if (int(gl_FragCoord.x) == 0) {
+	// rows are written in the second row (for each row there are 1280 pixels)
 	if (int(gl_FragCoord.y) == 1) {
-		for (float i = 0.5; i <= 1280.5; i++) { // do rows
+		for (float i = 0.5; i <= 1280.5; i++) {
 			if (i > width) break;
 			if (gl_FragCoord.x / height >= 1.0) break;
-			//vec2 texCoords = vec2(i / width, gl_FragCoord.y / height);
 			vec2 texCoords = vec2(i / width, gl_FragCoord.x / height);
 			if (interestingPixel(texCoords) == 1) {
 				sum++;
 			}
 		}
-	// columns are read from the first row and are written to first row
-	} else if (int(gl_FragCoord.y) == 0) { // do columns
+	// columns are written to first row (for each column there are 720 pixels)
+	} else if (int(gl_FragCoord.y) == 0) {
 		for (float i = 0.5; i <= 720.5; i++) {
 			if (i > height) break;
 			if (gl_FragCoord.x / width >= 1.0) break;
