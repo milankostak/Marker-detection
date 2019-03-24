@@ -430,7 +430,6 @@ const Detection = (function() {
 	/// 3. step: read data
 	///
 		//readData2();
-		//if (MEASURE_TIME) window.performance.mark("a");
 
 	///
 	//  4. step: optionally draw result
@@ -509,8 +508,6 @@ const Detection = (function() {
 
 		console.log(xCoord, sumColAll, sumCol, "xCoord, col");
 		console.log(yCoord, sumRowAll, sumRow, "yCoord, row");
-
-		//send({max: 100, x: xCoord, y: 720-yCoord, count: 1});
 	}
 
 	/**
@@ -520,6 +517,9 @@ const Detection = (function() {
 	function readData2() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
 		console.log(readBuffer2);
+		if (MEASURE_TIME) window.performance.mark("a");
+
+		send({max: 100, x: readBuffer2[4], y: readBuffer2[0], count: 1});
 	}
 
 	/**
