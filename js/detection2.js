@@ -342,14 +342,13 @@ const Detection = (function() {
 
 		gl.viewport(0, 0, Math.max(width, height), 2);
 
-		// ... and draw to it
+		// draw to outputTexture
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTexture, 0);
 
 		// bind input texture
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
 
-		// draw from input texture to FB texture
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		/*if (timerQuery) {
@@ -389,12 +388,13 @@ const Detection = (function() {
 
 		gl.viewport(0, 0, 1, 2);
 
-		// ... and draw to it
+		// draw to outputTexture2
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTexture2, 0);
 
 		// bind input texture
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
+
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
@@ -450,8 +450,8 @@ const Detection = (function() {
 	var xCoord, yCoord;
 
 	/**
-	 * Read output data from frame buffer.
-	 * Then find point of interest - point with maximum count of "interesting" pixels.
+	 * Read output data from frame buffer after first step.
+	 * Can be used for debugging purpose otherwise it is useless, because second step is doing the same but faster.
 	 */
 	function readData() {
 		const realWidth = Math.max(width, height);
@@ -486,6 +486,10 @@ const Detection = (function() {
 		//send({max: 100, x: xCoord, y: 720-yCoord, count: 1});
 	}
 
+	/**
+	 * Read output data from frame buffer after second step.
+	 * Can be used to obtain resulting coordinates which can be send over the netwrk somewhere else.
+	 */
 	function readData2() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
 		console.log(readBuffer2);
