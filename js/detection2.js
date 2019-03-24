@@ -50,11 +50,12 @@ const Detection = (function() {
 	// boolean, if it remains false for 50ms then it means marker was lost
 	let dataSent = true;
 	// time measurement variables
-	const MEASURE_TIME = false;
+	const MEASURE_TIME = false, MEASURE_GPU = true;
 	const FINISH_COUNT = 1000;
 	let currentCount = 0, times = []
 	const timeSlots = 4;
 	let timerQueryExt, timerQuery;
+	let queryRead = true;
 
 	/**
 	 * Public initialization function. Sets all necessary variables.
@@ -136,6 +137,8 @@ const Detection = (function() {
 			}
 			internalFormatTexture = gl.RGBA;
 			console.log("WebGL1 was initialized.");
+
+			if (MEASURE_GPU) timerQueryExt = gl.getExtension('EXT_disjoint_timer_query');
 		} else {
 			// necessary extension for WebGL2
 			const exten = gl.getExtension("EXT_color_buffer_float");
@@ -149,8 +152,9 @@ const Detection = (function() {
 			console.log("WebGL2 was initialized.");
 
 			// https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query_webgl2/
-			timerQueryExt = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+			if (MEASURE_GPU) timerQueryExt = gl.getExtension('EXT_disjoint_timer_query_webgl2');
 		}
+		if (MEASURE_GPU && !timerQueryExt) console.log("Timer query extension is not supported.");
 		return true;
 	}
 
@@ -351,19 +355,42 @@ const Detection = (function() {
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		/*if (timerQuery) {
-			let available = gl.getQueryParameter(timerQuery, gl.QUERY_RESULT_AVAILABLE);
+		if (timerQuery) {
+			let available = (gl instanceof WebGLRenderingContext) ?
+				timerQueryExt.getQueryObjectEXT(timerQuery, timerQueryExt.QUERY_RESULT_AVAILABLE_EXT) :
+				gl.getQueryParameter(timerQuery, gl.QUERY_RESULT_AVAILABLE);
 			let disjoint = gl.getParameter(timerQueryExt.GPU_DISJOINT_EXT);
 
 			if (available && !disjoint) {
-				let timeElapsed = gl.getQueryParameter(timerQuery, gl.QUERY_RESULT);
-				console.log("timeElapsed ", timeElapsed);
+				let timeElapsed = (gl instanceof WebGLRenderingContext) ?
+					timerQueryExt.getQueryObjectEXT(timerQuery, timerQueryExt.QUERY_RESULT_EXT) :
+					gl.getQueryParameter(timerQuery, gl.QUERY_RESULT);
+				//console.log("timeElapsed ", timeElapsed);
+				times.push(timeElapsed);
+				currentCount++;
+				if (currentCount > FINISH_COUNT) {
+					console.log(times.reduce((a, b) => (a + b)) / times.length);
+					times = [];
+					currentCount = 0;
+				}
+				queryRead = true;
+			} else {
+				console.log("not available");
 			}
 		}
-		timerQuery = gl.createQuery();
-		gl.beginQuery(timerQueryExt.TIME_ELAPSED_EXT, timerQuery);*/
+		if (queryRead) {
+			timerQuery = (gl instanceof WebGLRenderingContext) ?
+				timerQueryExt.createQueryEXT() :
+				gl.createQuery();
+
+			if (gl instanceof WebGLRenderingContext) timerQueryExt.beginQueryEXT(timerQueryExt.TIME_ELAPSED_EXT, timerQuery);
+			else gl.beginQuery(timerQueryExt.TIME_ELAPSED_EXT, timerQuery);
+		}
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-		//gl.endQuery(timerQueryExt.TIME_ELAPSED_EXT);
+		if (queryRead) {
+			if (gl instanceof WebGLRenderingContext) timerQueryExt.endQueryEXT(timerQueryExt.TIME_ELAPSED_EXT);
+			else gl.endQuery(timerQueryExt.TIME_ELAPSED_EXT);
+		}
 
 		if (MEASURE_TIME) window.performance.mark("a");
 		//readData();
