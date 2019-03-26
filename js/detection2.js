@@ -53,7 +53,7 @@ const Detection = (function() {
 	const MEASURE_TIME = false, MEASURE_GPU = true;
 	const FINISH_COUNT = 1000;
 	let currentCount = 0, times = []
-	const timeSlots = 4;
+	const timeSlots = 3;
 	let timerQueryExt, timerQuery;
 	let queryRead = true;
 
