@@ -50,10 +50,11 @@ const Detection = (function() {
 	// boolean, if it remains false for 50ms then it means marker was lost
 	let dataSent = true;
 	// time measurement variables
-	const MEASURE_TIME = false, MEASURE_GPU = true;
+	const MEASURE_TIME = false, MEASURE_GPU = false;
 	const FINISH_COUNT = 1000;
 	let currentCount = 0, times = []
 	const timeSlots = 3;
+
 	let timerQueryExt, timerQuery;
 	let queryRead = true;
 
@@ -354,8 +355,7 @@ const Detection = (function() {
 		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-		if (timerQuery) {
+		if (MEASURE_GPU && timerQuery) {
 			let available = (gl instanceof WebGLRenderingContext) ?
 				timerQueryExt.getQueryObjectEXT(timerQuery, timerQueryExt.QUERY_RESULT_AVAILABLE_EXT) :
 				gl.getQueryParameter(timerQuery, gl.QUERY_RESULT_AVAILABLE);
@@ -378,7 +378,7 @@ const Detection = (function() {
 				console.log("not available");
 			}
 		}
-		if (queryRead) {
+		if (MEASURE_GPU && queryRead) {
 			timerQuery = (gl instanceof WebGLRenderingContext) ?
 				timerQueryExt.createQueryEXT() :
 				gl.createQuery();
@@ -387,7 +387,7 @@ const Detection = (function() {
 			else gl.beginQuery(timerQueryExt.TIME_ELAPSED_EXT, timerQuery);
 		}
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-		if (queryRead) {
+		if (MEASURE_GPU && queryRead) {
 			if (gl instanceof WebGLRenderingContext) timerQueryExt.endQueryEXT(timerQueryExt.TIME_ELAPSED_EXT);
 			else gl.endQuery(timerQueryExt.TIME_ELAPSED_EXT);
 		}
@@ -516,7 +516,7 @@ const Detection = (function() {
 	 */
 	function readData2() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
-		console.log(readBuffer2);
+		//console.log(readBuffer2);
 		if (MEASURE_TIME) window.performance.mark("a");
 
 		send({max: 100, x: readBuffer2[4], y: readBuffer2[0], count: 1});
