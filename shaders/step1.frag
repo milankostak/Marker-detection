@@ -9,8 +9,10 @@ const float thresholdRB = 0.4;
 
 int interestingPixel(vec2 texCoords) {
 	vec4 pixel = texture2D(texture, texCoords);
-	if (pixel.r < thresholdRB && pixel.g > thresholdG && pixel.b < thresholdRB) {
-	//if (pixel.r > 0.5) {
+	if (pixel.r < thresholdRB && pixel.g > thresholdG && pixel.b < thresholdRB) { // classic green
+	//if (pixel.r > 0.5) { // red
+	//if (pixel.r > 0.15 && pixel.r < 0.3 && pixel.g > 0.15 && pixel.g < 0.3 && pixel.b > 0.4 && pixel.b < 0.65) { // blue pen
+	//if (pixel.r > 0.4 && pixel.r < 0.8 && pixel.g > 0.1 && pixel.g < 0.5 && pixel.b < 0.4) { // orange
 		return 1;
 	} else {
 		return 0;
