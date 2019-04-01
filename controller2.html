@@ -6,11 +6,15 @@
 <link rel="stylesheet" type="text/css" href="/css/controller.css">
 <script type="text/javascript" src="/transforms/transforms.js"></script>
 <script type="text/javascript" src="/utils/webgl-utils.js"></script>
+<!--
 <script type="text/javascript" src="/js/sender.js"></script>
+-->
 <script type="text/javascript" src="/js/detection2.js"></script>
+<!--
 <script type="text/javascript" src="/js/rotation.js"></script>
 <script type="text/javascript" src="/js/motion.js"></script>
 <script type="text/javascript" src="/js/helpers.js"></script>
+-->
 <script type="text/javascript">
 	"use strict";
 
@@ -32,14 +36,14 @@
 		// set video listener, important for starting animation
 		video = document.querySelector("video");
 		video.addEventListener("canplaythrough", setupAfterVideoStreamIsReady, false);
-		video.addEventListener("click", sendTouch, false);
+		//video.addEventListener("click", sendTouch, false);
 
 		// set change and click listeners
 		document.querySelector("label#all").addEventListener("click", doAll, false);
 		document.querySelector("label#none").addEventListener("click", doNone, false);
 		document.querySelector("label#position input").addEventListener("change", doPosition, false);
-		document.querySelector("label#rotation input").addEventListener("change", doRotation, false);
-		document.querySelector("label#motion input").addEventListener("change", doMotion, false);
+		//document.querySelector("label#rotation input").addEventListener("change", doRotation, false);
+		//document.querySelector("label#motion input").addEventListener("change", doMotion, false);
 
 		// window size listener for changing layout
 		// checks which one of height or width is bigger and changes the layout appropriately
@@ -50,9 +54,9 @@
 		Utils.initRequestAnimationFrame();
 
 		// init Rotation object
-		Rotation.init();
+		//Rotation.init();
 		// let the user know that the rotation of device is correct
-		Rotation.setCustomFunction(function(data) {
+		/*Rotation.setCustomFunction(function(data) {
 			Helpers.checkRotation(data, function rotationToRight() {
 				document.querySelector(".controls").style.backgroundColor = "lightblue";
 			}, function rotationToLeft() {
@@ -60,10 +64,10 @@
 			}, function noRotation() {
 				document.querySelector(".controls").style.backgroundColor = "white";
 			});
-		});
+		});*/
 
 		// init Motion object
-		Motion.init();
+		//Motion.init();
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 		// get access to camera
@@ -126,8 +130,8 @@
 		}, 600);
 
 		document.querySelector("label#position input").checked = true;
-		document.querySelector("label#rotation input").checked = true;
-		document.querySelector("label#motion input").checked = true;
+		//document.querySelector("label#rotation input").checked = true;
+		//document.querySelector("label#motion input").checked = true;
 		doPosition();
 		doRotation();
 		doMotion();
@@ -143,11 +147,11 @@
 		}, 600);
 
 		document.querySelector("label#position input").checked = false;
-		document.querySelector("label#rotation input").checked = false;
-		document.querySelector("label#motion input").checked = false;
+		//document.querySelector("label#rotation input").checked = false;
+		//document.querySelector("label#motion input").checked = false;
 		doPosition();
-		doRotation();
-		doMotion();
+		//doRotation();
+		//doMotion();
 	}
 
 	/**
@@ -171,7 +175,7 @@
 	/**
 	 * Event handler when rotation button is clicked
 	 */
-	function doRotation() {
+	/*function doRotation() {
 		if (document.querySelector("label#rotation input").checked) {
 			document.querySelector("label#rotation").classList.add("active");
 			Rotation.start();
@@ -179,12 +183,12 @@
 			document.querySelector("label#rotation").classList.remove("active");
 			Rotation.finish();
 		}
-	}
+	}*/
 
 	/**
 	 * Event handler when motion button is clicked
 	 */
-	function doMotion() {
+	/*function doMotion() {
 		if (document.querySelector("label#motion input").checked) {
 			document.querySelector("label#motion").classList.add("active");
 			Motion.start();
@@ -192,7 +196,7 @@
 			document.querySelector("label#motion").classList.remove("active");
 			Motion.finish();
 		}
-	}
+	}*/
 
 	/**
 	 * Resize event handler
@@ -214,18 +218,18 @@
 	 * Click and touch event handler
 	 * Sends information that the video has been clicked or touched
 	 */
-	function sendTouch() {
+	/*function sendTouch() {
 		let obj = {
 			type: "touch",
 			time: new Date().getTime()
 		};
 		Sender.add(obj);
-	}
+	}*/
 
 	/**
 	 * Helper method for sending test data
 	 */
-	function testSend() {
+	/*function testSend() {
 		let request = new XMLHttpRequest();
 		request.open('POST', '/ajax/data');
 		request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
@@ -234,7 +238,7 @@
 			time: new Date().getTime()
 		}];
 		request.send(JSON.stringify(data));
-	}
+	}*/
 
 </script>
 
@@ -257,8 +261,8 @@
 		<label id="none">Uncheck all</label><br>
 		<hr>
 		<label id="position"><input type="checkbox"> Position</label><br>
-		<label id="rotation"><input type="checkbox"> Rotation</label><br>
-		<label id="motion"><input type="checkbox"> Motion</label>
+		<label id="rotation"><input type="checkbox" disabled> Rotation</label><br>
+		<label id="motion"><input type="checkbox" disabled> Motion</label>
 	</div>
 </div>
 </body>

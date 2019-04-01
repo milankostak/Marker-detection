@@ -5,9 +5,9 @@
  * It is assigned by its inner anonymous self-invoking function. By using this approach some variables and functions can remain private.
  *
  * @public
- * @requires transforms3d.js
+ * @requires transforms.js
  * @requires webgl-utils.js
- * @requires sender.js
+ * // @requires sender.js
  * @type {Object}
  * @author Milan Košťák
  * @version 2.0
@@ -288,7 +288,7 @@ const Detection = (function() {
 		width = canvas.width = videoWidth;
 		height = canvas.height = videoHeight;
 
-		Sender.add({type: "setup", width: width, height: height});
+		//Sender.add({type: "setup", width: width, height: height});
 
 		// allocate readBuffer for reading pixels
 		// do it now, because it is time consuming operation
@@ -557,7 +557,7 @@ const Detection = (function() {
 			time: new Date().getTime(),
 			sequence: -1
 		};
-		Sender.add(obj)
+		//Sender.add(obj)
 	};
 
 	/**
@@ -575,7 +575,7 @@ const Detection = (function() {
 			y: obj2.y,
 			count: obj2.count
 		};
-		Sender.add(obj);
+		//Sender.add(obj);
 		dataSent = true;
 	}
 
@@ -594,7 +594,7 @@ const Detection = (function() {
 				y: 0,
 				count: 0
 			};
-			Sender.add(obj)
+			//Sender.add(obj)
 		}
 		dataSent = false;
 	}
