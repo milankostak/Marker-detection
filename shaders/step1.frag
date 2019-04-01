@@ -23,7 +23,7 @@ void main(void) {
 	if (int(gl_FragCoord.y) == 1) {
 		for (float i = 0.5; i <= 1280.5; i++) {
 			if (i > width) break;
-			if (gl_FragCoord.x / height >= 1.0) break;
+			if (gl_FragCoord.x / height >= 1.0) discard;
 			vec2 texCoords = vec2(i / width, gl_FragCoord.x / height);
 			if (interestingPixel(texCoords) == 1) {
 				sum++;
@@ -33,7 +33,7 @@ void main(void) {
 	} else if (int(gl_FragCoord.y) == 0) {
 		for (float i = 0.5; i <= 720.5; i++) {
 			if (i > height) break;
-			if (gl_FragCoord.x / width >= 1.0) break;
+			if (gl_FragCoord.x / width >= 1.0) discard;
 			vec2 texCoords = vec2(gl_FragCoord.x / width, i / height);
 			if (interestingPixel(texCoords) == 1) {
 				sum++;
