@@ -1,0 +1,28 @@
+{
+  "author": {
+    "name": "Milan Košťák",
+    "email": ""
+  },
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "serve-static": "^1.13.2",
+    "ws": "^2.3.1"
+  },
+  "description": "Marker detection in the image from camera.",
+  "engines": {
+    "node": "10.15.3",
+    "npm": "6.9.0"
+  },
+  "main": "server.js",
+  "name": "MarkerDetection",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/milankostak/Marker-detection.git"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "2.0.0"
+}

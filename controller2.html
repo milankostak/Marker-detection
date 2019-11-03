@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en-GB" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Controller</title>
+<link rel="stylesheet" type="text/css" href="/css/controller.css">
+<script type="text/javascript" src="/transforms/transforms.js"></script>
+<script type="text/javascript" src="/utils/webgl-utils.js"></script>
+<script type="text/javascript" src="/js/sender.js"></script>
+<script type="text/javascript" src="/js/detection2.js"></script>
+<script type="text/javascript" src="/js/rotation.js"></script>
+<script type="text/javascript" src="/js/motion.js"></script>
+<script type="text/javascript" src="/js/helpers.js"></script>
+<script type="text/javascript">
+	"use strict";
+
+	// HTMLVideoElement
+	var video;
+	// info if detection is being performed - if animation is running
+	// also is used to make sure that animation is running only once
+	var isAnimating = false;
+
+	window.onload = function() {
+		let initResult = Detection.init();
+
+		if (!initResult) {
+			alert("Your browser does not support WebGL.")
+			document.querySelector(".loading").innerHTML = "Your browser does not support WebGL or some of its extensions.";
+			return;
+		}
+
+		// set video listener, important for starting animation
+		video = document.querySelector("video");
+		video.addEventListener("canplaythrough", setupAfterVideoStreamIsReady, false);
+		video.addEventListener("click", sendTouch, false);
+
+		// set change and click listeners
+		document.querySelector("label#all").addEventListener("click", doAll, false);
+		document.querySelector("label#none").addEventListener("click", doNone, false);
+		document.querySelector("label#position input").addEventListener("change", doPosition, false);
+		document.querySelector("label#rotation input").addEventListener("change", doRotation, false);
+		document.querySelector("label#motion input").addEventListener("change", doMotion, false);
+
+		// window size listener for changing layout
+		// checks which one of height or width is bigger and changes the layout appropriately
+		window.addEventListener("resize", windowSizeChanged, false);
+		windowSizeChanged();
+
+		// init requestAnimFrame function
+		Utils.initRequestAnimationFrame();
+
+		// init Rotation object
+		Rotation.init();
+		// let the user know that the rotation of device is correct
+		Rotation.setCustomFunction(function(data) {
+			Helpers.checkRotation(data, function rotationToRight() {
+				document.querySelector(".controls").style.backgroundColor = "lightblue";
+			}, function rotationToLeft() {
+				document.querySelector(".controls").style.backgroundColor = "lightblue";
+			}, function noRotation() {
+				document.querySelector(".controls").style.backgroundColor = "white";
+			});
+		});
+
+		// init Motion object
+		Motion.init();
+
+		// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+		// get access to camera
+		navigator.mediaDevices.getUserMedia({
+			audio: false,
+			video: { width: 1280, height: 720, facingMode: "environment" }
+			/*video: {
+				width: { min: 720, ideal: 1024, max: 1280 },
+				height: { min: 540, max: 720 },
+				//prefer rear camera
+				facingMode: "environment"
+			}*/
+		}).then(function(stream) {
+			video.srcObject = stream;
+		}).catch(function(error) {
+			let msg = "";
+			if (error.name === "ConstraintNotSatisfiedError" || error.name === "NotFoundError") {
+				msg = "Your camera does not meet required resolution for this application to work.";
+			} else if (error.name === "TrackStartError") {
+				msg = "Your camera is probably used by different application at this time.";
+			} else {
+				msg = "There was an unknown error when accessing your camera.\nError message:\n" + error;
+			}
+			document.querySelector(".loading").innerHTML = msg;
+			alert(msg);
+			console.log("%cVideo Error: " + error, 'color: red');
+			console.log(msg);
+		});
+	};
+
+	/**
+	 * Main animation function that triggers detection in the image from camera
+	 */
+	function animate() {
+		if (isAnimating) {
+			Detection.updateTexture(video);
+			Detection.repaint();
+			requestAnimFrame(animate);
+		}
+	}
+
+	/**
+	 * Event handler when camera is ready to give pictures
+	 */
+	function setupAfterVideoStreamIsReady() {
+		Detection.setupAfterVideoStreamIsReady(video.videoWidth, video.videoHeight);
+
+		// hide loading message
+		document.querySelector(".loading-container").classList.add("hidden");
+		document.querySelector(".main").classList.remove("hidden");
+	}
+
+	/**
+	 * Event handler for starting all operations
+	 */
+	function doAll() {
+		document.querySelector("#all").classList.add("pulse");
+		setTimeout(function() {
+			document.querySelector("#all").classList.remove("pulse");
+		}, 600);
+
+		document.querySelector("label#position input").checked = true;
+		document.querySelector("label#rotation input").checked = true;
+		document.querySelector("label#motion input").checked = true;
+		doPosition();
+		doRotation();
+		doMotion();
+	}
+
+	/**
+	 * Event handler for stopping all operations
+	 */
+	function doNone() {
+		document.querySelector("#none").classList.add("pulse");
+		setTimeout(function() {
+			document.querySelector("#none").classList.remove("pulse");
+		}, 600);
+
+		document.querySelector("label#position input").checked = false;
+		document.querySelector("label#rotation input").checked = false;
+		document.querySelector("label#motion input").checked = false;
+		doPosition();
+		doRotation();
+		doMotion();
+	}
+
+	/**
+	 * Event handler when position button is clicked
+	 */
+	function doPosition() {
+		if (document.querySelector("label#position input").checked) {
+			document.querySelector("label#position").classList.add("active");
+			if (!isAnimating) {
+				isAnimating = true;
+				Detection.restart();
+				animate();
+			}
+		} else {
+			document.querySelector("label#position").classList.remove("active");
+			Detection.finish();
+			isAnimating = false;
+		}
+	}
+
+	/**
+	 * Event handler when rotation button is clicked
+	 */
+	function doRotation() {
+		if (document.querySelector("label#rotation input").checked) {
+			document.querySelector("label#rotation").classList.add("active");
+			Rotation.start();
+		} else {
+			document.querySelector("label#rotation").classList.remove("active");
+			Rotation.finish();
+		}
+	}
+
+	/**
+	 * Event handler when motion button is clicked
+	 */
+	function doMotion() {
+		if (document.querySelector("label#motion input").checked) {
+			document.querySelector("label#motion").classList.add("active");
+			Motion.start();
+		} else {
+			document.querySelector("label#motion").classList.remove("active");
+			Motion.finish();
+		}
+	}
+
+	/**
+	 * Resize event handler
+	 * Changes GUI so that buttons are either right or bottom
+	 */
+	function windowSizeChanged() {
+		if (window.innerHeight < window.innerWidth) {
+			// window is wider than higher
+			document.querySelector(".main").classList.remove("bottom");
+			document.querySelector(".main").classList.add("right");
+		} else {
+			// window is higher than wider
+			document.querySelector(".main").classList.remove("right");
+			document.querySelector(".main").classList.add("bottom");
+		}
+	}
+
+	/**
+	 * Click and touch event handler
+	 * Sends information that the video has been clicked or touched
+	 */
+	function sendTouch() {
+		let obj = {
+			type: "touch",
+			time: new Date().getTime()
+		};
+		Sender.add(obj);
+	}
+
+	/**
+	 * Helper method for sending test data
+	 */
+	function testSend() {
+		let request = new XMLHttpRequest();
+		request.open('POST', '/ajax/data');
+		request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+		let data = [{
+			type: "test",
+			time: new Date().getTime()
+		}];
+		request.send(JSON.stringify(data));
+	}
+
+</script>
+
+</head>
+<body>
+<div class="loading-container">
+	<div class="loading">
+		Loading, please wait...<br>
+		Access to your camera is required for this appplication to work.<br>
+		You might be asked for giving a permissison to access it.
+	</div>
+</div>
+<div class="main hidden">
+	<div class="center">
+		<canvas></canvas>
+		<video src="" autoplay muted></video>
+	</div>
+	<div class="controls">
+		<label id="all">Check all</label><br>
+		<label id="none">Uncheck all</label><br>
+		<hr>
+		<label id="position"><input type="checkbox"> Position</label><br>
+		<label id="rotation"><input type="checkbox"> Rotation</label><br>
+		<label id="motion"><input type="checkbox"> Motion</label>
+	</div>
+</div>
+</body>
+</html>
