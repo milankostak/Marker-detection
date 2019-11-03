@@ -1,11 +1,11 @@
-### WebGL branch
+### WebGL folder
 
 Detection with using WebGL shaders.
 
-https://github.com/milankostak/Marker-detection/tree/WebGL
+https://github.com/milankostak/Marker-detection/WebGL
 
-### TensorFlow branch
+### TensorFlow folder
 
 Detection using TensorFlow and neural networks.
 
-https://github.com/milankostak/Marker-detection/tree/TensorFlow
+https://github.com/milankostak/Marker-detection/TensorFlow
