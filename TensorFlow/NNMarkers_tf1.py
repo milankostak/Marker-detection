@@ -6,12 +6,12 @@ import tensorflow as tf
 from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.keras.layers import *
 
-train_dir = os.path.abspath("./images/train/")
-train_dir_negative = os.path.abspath("./images/train/negative/")
-train_dir_positive = os.path.abspath("./images/train/positive/")
-val_dir = os.path.abspath("./images/validation/")
-val_dir_negative = os.path.abspath("./images/validation/negative/")
-val_dir_positive = os.path.abspath("./images/validation/positive/")
+train_dir = os.path.abspath("./images1/train/")
+train_dir_negative = os.path.abspath("./images1/train/negative/")
+train_dir_positive = os.path.abspath("./images1/train/positive/")
+val_dir = os.path.abspath("./images1/validation/")
+val_dir_negative = os.path.abspath("./images1/validation/negative/")
+val_dir_positive = os.path.abspath("./images1/validation/positive/")
 
 num_train_neg = len(os.listdir(train_dir_negative))
 num_train_pos = len(os.listdir(train_dir_positive))
