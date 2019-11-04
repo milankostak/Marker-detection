@@ -11,19 +11,33 @@ files2018 = glob.glob("..../*.jpg")
 files2019 = glob.glob("..../*.jpg")
 
 files = files2015 + files2016 + files2017 + files2018 + files2019
-print(files.__len__())
+print("Total images count: ", files.__len__())
+
+folder = "...."
+trainFolder = folder + "train/"
+valFolder = folder + "val/"
+testFolder = folder + "test/"
+
+if not os.path.exists(folder):
+    os.mkdir(folder)
+if not os.path.exists(trainFolder):
+    os.mkdir(trainFolder)
+if not os.path.exists(valFolder):
+    os.mkdir(valFolder)
+if not os.path.exists(testFolder):
+    os.mkdir(testFolder)
 
 counter = 0
 for file in files:
     name = f'{counter:04d}'
 
-    newFile = "..../images/"
+    newFile = ""
     if counter % 10 < 7:  # <0;6>
-        newFile = newFile + "train/" + name + ".jpg"
+        newFile = trainFolder + name + ".jpg"
     elif counter % 10 < 9:
-        newFile = newFile + "val/" + name + ".jpg"
+        newFile = valFolder + name + ".jpg"
     else:
-        newFile = newFile + "test/" + name + ".jpg"
+        newFile = testFolder + name + ".jpg"
 
     shutil.copy(file, newFile)
     source = cv2.imread(newFile)
