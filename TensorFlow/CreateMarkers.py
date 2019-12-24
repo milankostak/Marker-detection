@@ -50,7 +50,15 @@ for file in files:
     y = random.randint(1, imgH - height - 1)
     color = (0, 200, 0)
 
+    # Integer from 1 to 10, endpoints included
+    # makeMarker = random.randint(1, 10) <= 6  # 60 % maker, 40 % no marker
+    # makeMarker = True  # maker marker always
+
+    # if makeMarker:
     cv2.rectangle(source, (x, y), (x + width, y + height), color, -1)
     print(counter, os.path.abspath(newFile), imgW, imgH, 0, x, y, x + width, y + height)
+    # else:
+    #     print(counter, os.path.abspath(newFile), imgW, imgH)
+
     cv2.imwrite(newFile, source)
     counter += 1
