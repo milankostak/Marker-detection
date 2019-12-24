@@ -4,5 +4,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# darknet
+
 *.weights
+checkpoint/
+darknet_weights/
+logs/
+*.log
