@@ -7,14 +7,14 @@ import numpy as np
 import logging
 from tqdm import trange
 
-import args
+import YOLOv3.args as args
 
-from utils.data_utils import get_batch_data
-from utils.misc_utils import shuffle_and_overwrite, make_summary, config_learning_rate, config_optimizer, AverageMeter
-from utils.eval_utils import evaluate_on_cpu, evaluate_on_gpu, get_preds_gpu, voc_eval, parse_gt_rec
-from utils.nms_utils import gpu_nms
+from YOLOv3.utils.data_utils import get_batch_data
+from YOLOv3.utils.misc_utils import shuffle_and_overwrite, make_summary, config_learning_rate, config_optimizer, AverageMeter
+from YOLOv3.utils.eval_utils import evaluate_on_cpu, evaluate_on_gpu, get_preds_gpu, voc_eval, parse_gt_rec
+from YOLOv3.utils.nms_utils import gpu_nms
 
-from model import yolov3
+from YOLOv3.model import yolov3
 
 # setting loggers
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s',

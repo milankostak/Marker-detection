@@ -3,7 +3,7 @@
 
 from __future__ import division, print_function
 
-from utils.misc_utils import parse_anchors, read_class_names
+from YOLOv3.utils.misc_utils import parse_anchors, read_class_names
 import math
 
 ### Some paths

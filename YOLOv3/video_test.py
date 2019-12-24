@@ -8,12 +8,12 @@ import argparse
 import cv2
 import time
 
-from utils.misc_utils import parse_anchors, read_class_names
-from utils.nms_utils import gpu_nms
-from utils.plot_utils import get_color_table, plot_one_box
-from utils.data_aug import letterbox_resize
+from YOLOv3.utils.misc_utils import parse_anchors, read_class_names
+from YOLOv3.utils.nms_utils import gpu_nms
+from YOLOv3.utils.plot_utils import get_color_table, plot_one_box
+from YOLOv3.utils.data_aug import letterbox_resize
 
-from model import yolov3
+from YOLOv3.model import yolov3
 
 parser = argparse.ArgumentParser(description="YOLO-V3 video test procedure.")
 parser.add_argument("input_video", type=str,

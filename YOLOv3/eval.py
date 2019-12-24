@@ -7,12 +7,12 @@ import numpy as np
 import argparse
 from tqdm import trange
 
-from utils.data_utils import get_batch_data
-from utils.misc_utils import parse_anchors, read_class_names, AverageMeter
-from utils.eval_utils import evaluate_on_cpu, evaluate_on_gpu, get_preds_gpu, voc_eval, parse_gt_rec
-from utils.nms_utils import gpu_nms
+from YOLOv3.utils.data_utils import get_batch_data
+from YOLOv3.utils.misc_utils import parse_anchors, read_class_names, AverageMeter
+from YOLOv3.utils.eval_utils import evaluate_on_cpu, evaluate_on_gpu, get_preds_gpu, voc_eval, parse_gt_rec
+from YOLOv3.utils.nms_utils import gpu_nms
 
-from model import yolov3
+from YOLOv3.model import yolov3
 
 #################
 # ArgumentParser
