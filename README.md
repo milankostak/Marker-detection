@@ -14,4 +14,4 @@ https://github.com/milankostak/Marker-detection/tree/master/TensorFlow
 
 Detection using YOLOv3 model.
 
-_coming soon_
+https://github.com/milankostak/Marker-detection/tree/master/YOLOv3
