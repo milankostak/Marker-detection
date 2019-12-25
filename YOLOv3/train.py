@@ -129,7 +129,7 @@ with tf.Session() as sess:
 
     best_mAP = -np.Inf
 
-    for epoch in range(args.total_epoches):
+    for epoch in range(args.total_epochs):
 
         sess.run(train_init_op)
         loss_total, loss_xy, loss_wh, loss_conf, loss_class = AverageMeter(), AverageMeter(), AverageMeter(), AverageMeter(), AverageMeter()

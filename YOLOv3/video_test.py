@@ -105,5 +105,5 @@ with tf.Session() as sess:
             break
 
     vid.release()
-    if args.save_video:
-        videoWriter.release()
+    # if args.save_video:
+    #     videoWriter.release()
