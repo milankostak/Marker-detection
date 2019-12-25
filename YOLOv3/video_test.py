@@ -15,16 +15,21 @@ from YOLOv3.utils.data_aug import letterbox_resize
 
 from YOLOv3.model import yolov3
 
+#################
+# ArgumentParser
+#################
 parser = argparse.ArgumentParser(description="YOLO-V3 video test procedure.")
-parser.add_argument("input_video", type=str,
+
+images_folder = "images5"
+parser.add_argument("--input_video", type=str, default="todo",
                     help="The path of the input video.")
-parser.add_argument("--anchor_path", type=str, default="./data/yolo_anchors.txt",
+parser.add_argument("--anchor_path", type=str, default="./data/my_data/" + images_folder + "/marker_anchors.txt",
                     help="The path of the anchor txt file.")
 parser.add_argument("--new_size", nargs='*', type=int, default=[416, 416],
                     help="Resize the input image with `new_size`, size format: [width, height]")
 parser.add_argument("--letterbox_resize", type=lambda x: (str(x).lower() == 'true'), default=True,
                     help="Whether to use the letterbox resize.")
-parser.add_argument("--class_name_path", type=str, default="./data/coco.names",
+parser.add_argument("--class_name_path", type=str, default="./data/my_data/" + images_folder + "/data.names",
                     help="The path of the class names.")
 parser.add_argument("--restore_path", type=str, default="./data/darknet_weights/yolov3.ckpt",
                     help="The path of the weights to restore.")
@@ -38,7 +43,8 @@ args.num_class = len(args.classes)
 
 color_table = get_color_table(args.num_class)
 
-vid = cv2.VideoCapture(args.input_video)
+# vid = cv2.VideoCapture(args.input_video)
+vid = cv2.VideoCapture(0)  # web cam
 video_frame_cnt = int(vid.get(7))
 video_width = int(vid.get(3))
 video_height = int(vid.get(4))
@@ -62,7 +68,8 @@ with tf.Session() as sess:
     saver = tf.train.Saver()
     saver.restore(sess, args.restore_path)
 
-    for i in range(video_frame_cnt):
+    # for i in range(video_frame_cnt):
+    while 1:
         ret, img_ori = vid.read()
         if args.letterbox_resize:
             img, resize_ratio, dw, dh = letterbox_resize(img_ori, args.new_size[0], args.new_size[1])
@@ -92,8 +99,8 @@ with tf.Session() as sess:
         cv2.putText(img_ori, '{:.2f}ms'.format((end_time - start_time) * 1000), (40, 40), 0,
                     fontScale=1, color=(0, 255, 0), thickness=2)
         cv2.imshow('image', img_ori)
-        if args.save_video:
-            videoWriter.write(img_ori)
+        # if args.save_video:
+        #     videoWriter.write(img_ori)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 

@@ -2,60 +2,49 @@
 
 from __future__ import division, print_function
 
-import tensorflow as tf
-import numpy as np
 import argparse
+
+import tensorflow as tf
 from tqdm import trange
 
-from YOLOv3.utils.data_utils import get_batch_data
-from YOLOv3.utils.misc_utils import parse_anchors, read_class_names, AverageMeter
-from YOLOv3.utils.eval_utils import evaluate_on_cpu, evaluate_on_gpu, get_preds_gpu, voc_eval, parse_gt_rec
-from YOLOv3.utils.nms_utils import gpu_nms
-
 from YOLOv3.model import yolov3
+from YOLOv3.utils.data_utils import get_batch_data
+from YOLOv3.utils.eval_utils import get_preds_gpu, voc_eval, parse_gt_rec
+from YOLOv3.utils.misc_utils import parse_anchors, read_class_names, AverageMeter
+from YOLOv3.utils.nms_utils import gpu_nms
 
 #################
 # ArgumentParser
 #################
 parser = argparse.ArgumentParser(description="YOLO-V3 eval procedure.")
-# some paths
-parser.add_argument("--eval_file", type=str, default="./data/my_data/val.txt",
+
+images_folder = "images5"
+parser.add_argument("--eval_file", type=str, default='./data/my_data/' + images_folder + "/test.txt",
                     help="The path of the validation or test txt file.")
 
 parser.add_argument("--restore_path", type=str, default="./data/darknet_weights/yolov3.ckpt",
                     help="The path of the weights to restore.")
-
-parser.add_argument("--anchor_path", type=str, default="./data/yolo_anchors.txt",
+parser.add_argument("--anchor_path", type=str, default='./data/my_data/' + images_folder + "/marker_anchors.txt",
                     help="The path of the anchor txt file.")
-
-parser.add_argument("--class_name_path", type=str, default="./data/coco.names",
+parser.add_argument("--class_name_path", type=str, default='./data/my_data/' + images_folder + "/data.names",
                     help="The path of the class names.")
-
 # some numbers
 parser.add_argument("--img_size", nargs='*', type=int, default=[416, 416],
                     help="Resize the input image to `img_size`, size format: [width, height]")
-
 parser.add_argument("--letterbox_resize", type=lambda x: (str(x).lower() == 'true'), default=False,
                     help="Whether to use the letterbox resize, i.e., keep the original image aspect ratio.")
-
 parser.add_argument("--num_threads", type=int, default=10,
                     help="Number of threads for image processing used in tf.data pipeline.")
-
 parser.add_argument("--prefetech_buffer", type=int, default=5,
                     help="Prefetech_buffer used in tf.data pipeline.")
-
 parser.add_argument("--nms_threshold", type=float, default=0.45,
                     help="IOU threshold in nms operation.")
-
 parser.add_argument("--score_threshold", type=float, default=0.01,
                     help="Threshold of the probability of the classes in nms operation.")
-
 parser.add_argument("--nms_topk", type=int, default=400,
                     help="Keep at most nms_topk outputs after nms.")
-
 parser.add_argument("--use_voc_07_metric", type=lambda x: (str(x).lower() == 'true'), default=False,
                     help="Whether to use the voc 2007 mAP metrics.")
-
 args = parser.parse_args()
 
 # args params
@@ -69,7 +58,8 @@ is_training = tf.placeholder(dtype=tf.bool, name="phase_train")
 handle_flag = tf.placeholder(tf.string, [], name='iterator_handle_flag')
 pred_boxes_flag = tf.placeholder(tf.float32, [1, None, None])
 pred_scores_flag = tf.placeholder(tf.float32, [1, None, None])
-gpu_nms_op = gpu_nms(pred_boxes_flag, pred_scores_flag, args.class_num, args.nms_topk, args.score_threshold, args.nms_threshold)
+gpu_nms_op = gpu_nms(pred_boxes_flag, pred_scores_flag, args.class_num, args.nms_topk, args.score_threshold,
+                     args.nms_threshold)
 
 ##################
 # tf.data pipeline
@@ -77,7 +67,9 @@ gpu_nms_op = gpu_nms(pred_boxes_flag, pred_scores_flag, args.class_num, args.nms
 val_dataset = tf.data.TextLineDataset(args.eval_file)
 val_dataset = val_dataset.batch(1)
 val_dataset = val_dataset.map(
-    lambda x: tf.py_func(get_batch_data, [x, args.class_num, args.img_size, args.anchors, 'val', False, False, args.letterbox_resize], [tf.int64, tf.float32, tf.float32, tf.float32, tf.float32]),
+    lambda x: tf.py_func(get_batch_data,
+                         [x, args.class_num, args.img_size, args.anchors, 'val', False, False, args.letterbox_resize],
+                         [tf.int64, tf.float32, tf.float32, tf.float32, tf.float32]),
     num_parallel_calls=args.num_threads
 )
 val_dataset.prefetch(args.prefetech_buffer)
