@@ -1,6 +1,6 @@
 [submodule "utils"]
-	path = WebGL/utils
+	path = utils
 	url = https://github.com/milankostak/WebGL-Utils
 [submodule "transforms"]
-	path = WebGL/transforms
+	path = transforms
 	url = https://github.com/milankostak/WebGL-Transforms
