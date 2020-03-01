@@ -52,7 +52,7 @@ const Detection = (function() {
 	// time measurement variables
 	const MEASURE_TIME = false, MEASURE_GPU = false;
 	const FINISH_COUNT = 1000;
-	let currentCount = 0, times = []
+	let currentCount = 0, times = [];
 	const timeSlots = 3;
 
 	let timerQueryExt, timerQuery;
@@ -272,7 +272,7 @@ const Detection = (function() {
 	}
 
 	function initTimeMeasurement() {
-		for (var i = 0; i < timeSlots; i++) {
+		for (let i = 0; i < timeSlots; i++) {
 			times[i] = [];
 		}
 	}
@@ -307,11 +307,11 @@ const Detection = (function() {
 		if (MEASURE_TIME && ++currentCount === FINISH_COUNT) {
 			let t = [];
 
-			for (var i = 0; i < timeSlots; i++) {
+			for (let i = 0; i < timeSlots; i++) {
 				t.push(times[i].reduce((a, b) => (a + b)) / times[i].length);
 			}
 			let result = "";
-			for (var i = 0; i < timeSlots; i++) {
+			for (let i = 0; i < timeSlots; i++) {
 				result += t[i].toFixed(2) + ", "
 			}
 
@@ -323,7 +323,7 @@ const Detection = (function() {
 		}
 
 		if (MEASURE_TIME) {
-			window.performance.clearMarks()
+			window.performance.clearMarks();
 			window.performance.mark("a");
 		}
 	///
@@ -467,13 +467,13 @@ const Detection = (function() {
 		if (MEASURE_TIME) {
 			let times2 = performance.getEntriesByName("a");
 
-			for (var i = 0; i < timeSlots; i++) {
+			for (let i = 0; i < timeSlots; i++) {
 				times[i].push(times2[i+1].startTime - times2[i].startTime);
 			}
 		}
 	};
 
-	var xCoord, yCoord;
+	let xCoord, yCoord;
 
 	/**
 	 * Read output data from frame buffer after first step.
