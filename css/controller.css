@@ -1,0 +1,130 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	background-color: #DEDEDE;
+	font-family: Calibri, Arial, sans-serif;
+}
+
+body,
+html {
+	height: 100%;
+	width: 100%;
+}
+
+/*
+ canvas is used for drawing only
+ video is shown instead as it provides image without any delay and with better performace
+
+canvas {
+	display: none;
+}
+ */
+.center {
+	text-align: center;
+}
+
+.loading-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+}
+
+.loading {
+	background-color: white;
+	box-shadow: 0 0 60px 0 #333;
+	color: #666;
+	border: 1px solid #ddd;
+	padding: 30px;
+	text-align: center;
+	font-size: 21px;
+}
+
+.main {
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+}
+
+.main.right {
+	flex-direction: row;
+}
+
+.main.bottom {
+	flex-direction: column;
+	height: 100%;
+}
+
+.controls {
+	text-align: center;
+	font-size: 25px;
+	color: #666;
+	background-color: white;
+	padding: 20px;
+	min-width: 190px;
+}
+
+.controls label {
+	display: inline-block;
+}
+
+.main.right .controls label {
+	width: calc(100% - 40px); /* 2× padding of .controls */
+}
+
+.main.right .controls label:first-child {
+	margin-top: 100px;
+}
+
+label {
+	padding: 10px;
+	margin: 10px;
+	border-radius: 4px;
+	background-color: #eee;
+	transition: all .15s ease-in;
+}
+
+label.active {
+	background-color: #2098D1;
+	color: #eee;
+	transform: scale(1.1);
+}
+
+label,
+label input {
+	cursor: pointer;
+}
+
+label:hover,
+label input:hover {
+	background-color: #99ccde;
+}
+
+label.active:hover,
+label.active input:hover {
+	background-color: #2098D1;
+	color: #666;
+}
+
+label.pulse {
+	box-shadow: 0 0 0 0 rgba(32, 152, 209, 0.7);
+	animation: pulse 0.7s;
+}
+
+@keyframes pulse {
+	to {
+		box-shadow: 0 0 0 10px rgba(32, 152, 209, 0);
+	}
+}
+
+/* controls in one line when bottom orientation */
+.main.bottom .controls br {
+	display: none;
+}
+
+.hidden {
+	display: none;
+}
