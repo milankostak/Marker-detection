@@ -15,16 +15,16 @@
 	"use strict";
 
 	// HTMLVideoElement
-	var video;
-	// info if detection is being performed - if animation is running
-	// also is used to make sure that animation is running only once
-	var isAnimating = false;
+	let video;
+	// is detection currently being performed? - if animation is running
+	// also, it is used to make sure that animation is running only once
+	let isAnimating = false;
 
 	window.onload = function() {
 		let initResult = Detection.init();
 
 		if (!initResult) {
-			alert("Your browser does not support WebGL.")
+			alert("Your browser does not support WebGL.");
 			document.querySelector(".loading").innerHTML = "Your browser does not support WebGL or some of its extensions.";
 			return;
 		}
@@ -41,18 +41,15 @@
 		document.querySelector("label#rotation input").addEventListener("change", doRotation, false);
 		document.querySelector("label#motion input").addEventListener("change", doMotion, false);
 
-		// window size listener for changing layout
-		// checks which one of height or width is bigger and changes the layout appropriately
+		// window size listener for detecting layout changes
+		// checks which if either height or width is bigger and then changes the layout appropriately
 		window.addEventListener("resize", windowSizeChanged, false);
 		windowSizeChanged();
-
-		// init requestAnimFrame function
-		Utils.initRequestAnimationFrame();
 
 		// init Rotation object
 		Rotation.init();
 		// let the user know that the rotation of device is correct
-		Rotation.setCustomFunction(function(data) {
+		Rotation.setCustomFunction((data) => {
 			Helpers.checkRotation(data, function rotationToRight() {
 				document.querySelector(".controls").style.backgroundColor = "lightblue";
 			}, function rotationToLeft() {
@@ -76,10 +73,10 @@
 				//prefer rear camera
 				facingMode: "environment"
 			}*/
-		}).then(function(stream) {
+		}).then((stream) => {
 			video.srcObject = stream;
-		}).catch(function(error) {
-			let msg = "";
+		}).catch((error) => {
+			let msg;
 			if (error.name === "ConstraintNotSatisfiedError" || error.name === "NotFoundError") {
 				msg = "Your camera does not meet required resolution for this application to work.";
 			} else if (error.name === "TrackStartError") {
@@ -101,7 +98,7 @@
 		if (isAnimating) {
 			Detection.updateTexture(video);
 			Detection.repaint();
-			requestAnimFrame(animate);
+			window.requestAnimationFrame(animate);
 		}
 	}
 
@@ -121,7 +118,7 @@
 	 */
 	function doAll() {
 		document.querySelector("#all").classList.add("pulse");
-		setTimeout(function() {
+		window.setTimeout(() => {
 			document.querySelector("#all").classList.remove("pulse");
 		}, 600);
 
@@ -138,7 +135,7 @@
 	 */
 	function doNone() {
 		document.querySelector("#none").classList.add("pulse");
-		setTimeout(function() {
+		window.setTimeout(() => {
 			document.querySelector("#none").classList.remove("pulse");
 		}, 600);
 
@@ -243,8 +240,8 @@
 <div class="loading-container">
 	<div class="loading">
 		Loading, please wait...<br>
-		Access to your camera is required for this appplication to work.<br>
-		You might be asked for giving a permissison to access it.
+		Access to your camera is required for this application to work.<br>
+		You might be asked for giving a permission to access it.
 	</div>
 </div>
 <div class="main hidden">

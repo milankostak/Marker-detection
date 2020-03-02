@@ -10,7 +10,7 @@
  * @requires sender.js
  * @type {Object}
  * @author Milan Košťák
- * @version 2.0
+ * @version 2.0.1
  */
 const Detection = (function() {
 
@@ -124,6 +124,7 @@ const Detection = (function() {
 			// extension that is necessary for loading or reading float data to or from GPU when using WebGL1
 			let floatExtension = gl.getExtension("OES_texture_float");
 			if (!floatExtension) {
+				// if float is not available then at least half_float
 				floatExtension = gl.getExtension("OES_texture_half_float");
 				if (!floatExtension) {
 					console.log("OES_texture_float nor OES_texture_half_float are supported.");
@@ -142,8 +143,8 @@ const Detection = (function() {
 			if (MEASURE_GPU) timerQueryExt = gl.getExtension('EXT_disjoint_timer_query');
 		} else {
 			// necessary extension for WebGL2
-			const exten = gl.getExtension("EXT_color_buffer_float");
-			if (!exten) {
+			const extColorBufferFloat = gl.getExtension("EXT_color_buffer_float");
+			if (!extColorBufferFloat) {
 				console.log("EXT_color_buffer_float is not supported");
 				alert("Initialization was not successful. Your browser doesn't support all necessary WebGL2 extensions.");
 				return false;
@@ -281,8 +282,8 @@ const Detection = (function() {
 	 * Set all things that need to know the dimension of source video.
 	 * Function is called when this information is available.
 	 * @public
-	 * @param  {Number} videoWidth  width of source video
-	 * @param  {Number} videoHeight height of source video
+	 * @param  {Number} videoWidth  width of the source video
+	 * @param  {Number} videoHeight height of the source video
 	 */
 	Detection.setupAfterVideoStreamIsReady = function(videoWidth, videoHeight) {
 		width = canvas.width = videoWidth;
@@ -291,7 +292,7 @@ const Detection = (function() {
 		Sender.add({type: "setup", width: width, height: height});
 
 		// allocate readBuffer for reading pixels
-		// do it now, because it is time consuming operation
+		// do it now, because it is a time consuming operation
 		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
 		readBuffer = new Float32Array(arraySize);
 		readBuffer2 = new Float32Array(2 * 4); // 2 pixels
@@ -512,7 +513,7 @@ const Detection = (function() {
 
 	/**
 	 * Read output data from frame buffer after second step.
-	 * Can be used to obtain resulting coordinates which can be send over the netwrk somewhere else.
+	 * Can be used to obtain resulting coordinates which can be send over the network somewhere else.
 	 */
 	function readData2() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
@@ -543,7 +544,7 @@ const Detection = (function() {
 	Detection.restart = function() {
 		// restart the sequence so the receiver can also restart the relative position
 		positionSequence = 0;
-		markerFoundCheckInterval = setInterval(checkIfMarkerFound, markerFoundCheckIntervalTime);
+		markerFoundCheckInterval = window.setInterval(checkIfMarkerFound, markerFoundCheckIntervalTime);
 	};
 
 	/**
@@ -551,7 +552,7 @@ const Detection = (function() {
 	 * @public
 	 */
 	Detection.finish = function() {
-		clearInterval(markerFoundCheckInterval);
+		window.clearInterval(markerFoundCheckInterval);
 		let obj = {
 			type: "marker",
 			time: new Date().getTime(),
