@@ -6,11 +6,7 @@
 <link rel="stylesheet" type="text/css" href="/css/controller.css">
 <script type="text/javascript" src="/transforms/transforms.js"></script>
 <script type="text/javascript" src="/utils/webgl-utils.js"></script>
-<script type="text/javascript" src="/js/sender.js"></script>
 <script type="text/javascript" src="/js/detection.js"></script>
-<script type="text/javascript" src="/js/rotation.js"></script>
-<script type="text/javascript" src="/js/motion.js"></script>
-<script type="text/javascript" src="/js/helpers.js"></script>
 <script type="text/javascript">
 	"use strict";
 
@@ -32,35 +28,14 @@
 		// set video listener, important for starting animation
 		video = document.querySelector("video");
 		video.addEventListener("canplaythrough", setupAfterVideoStreamIsReady, false);
-		video.addEventListener("click", sendTouch, false);
 
 		// set change and click listeners
-		document.querySelector("label#all").addEventListener("click", doAll, false);
-		document.querySelector("label#none").addEventListener("click", doNone, false);
 		document.querySelector("label#position input").addEventListener("change", doPosition, false);
-		document.querySelector("label#rotation input").addEventListener("change", doRotation, false);
-		document.querySelector("label#motion input").addEventListener("change", doMotion, false);
 
 		// window size listener for detecting layout changes
 		// checks which if either height or width is bigger and then changes the layout appropriately
 		window.addEventListener("resize", windowSizeChanged, false);
 		windowSizeChanged();
-
-		// init Rotation object
-		Rotation.init();
-		// let the user know that the rotation of device is correct
-		Rotation.setCustomFunction((data) => {
-			Helpers.checkRotation(data, function rotationToRight() {
-				document.querySelector(".controls").style.backgroundColor = "lightblue";
-			}, function rotationToLeft() {
-				document.querySelector(".controls").style.backgroundColor = "lightblue";
-			}, function noRotation() {
-				document.querySelector(".controls").style.backgroundColor = "white";
-			});
-		});
-
-		// init Motion object
-		Motion.init();
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
 		// get access to camera
@@ -114,40 +89,6 @@
 	}
 
 	/**
-	 * Event handler for starting all operations
-	 */
-	function doAll() {
-		document.querySelector("#all").classList.add("pulse");
-		window.setTimeout(() => {
-			document.querySelector("#all").classList.remove("pulse");
-		}, 600);
-
-		document.querySelector("label#position input").checked = true;
-		document.querySelector("label#rotation input").checked = true;
-		document.querySelector("label#motion input").checked = true;
-		doPosition();
-		doRotation();
-		doMotion();
-	}
-
-	/**
-	 * Event handler for stopping all operations
-	 */
-	function doNone() {
-		document.querySelector("#none").classList.add("pulse");
-		window.setTimeout(() => {
-			document.querySelector("#none").classList.remove("pulse");
-		}, 600);
-
-		document.querySelector("label#position input").checked = false;
-		document.querySelector("label#rotation input").checked = false;
-		document.querySelector("label#motion input").checked = false;
-		doPosition();
-		doRotation();
-		doMotion();
-	}
-
-	/**
 	 * Event handler when position button is clicked
 	 */
 	function doPosition() {
@@ -165,31 +106,6 @@
 		}
 	}
 
-	/**
-	 * Event handler when rotation button is clicked
-	 */
-	function doRotation() {
-		if (document.querySelector("label#rotation input").checked) {
-			document.querySelector("label#rotation").classList.add("active");
-			Rotation.start();
-		} else {
-			document.querySelector("label#rotation").classList.remove("active");
-			Rotation.finish();
-		}
-	}
-
-	/**
-	 * Event handler when motion button is clicked
-	 */
-	function doMotion() {
-		if (document.querySelector("label#motion input").checked) {
-			document.querySelector("label#motion").classList.add("active");
-			Motion.start();
-		} else {
-			document.querySelector("label#motion").classList.remove("active");
-			Motion.finish();
-		}
-	}
 
 	/**
 	 * Resize event handler
@@ -205,32 +121,6 @@
 			document.querySelector(".main").classList.remove("right");
 			document.querySelector(".main").classList.add("bottom");
 		}
-	}
-
-	/**
-	 * Click and touch event handler
-	 * Sends information that the video has been clicked or touched
-	 */
-	function sendTouch() {
-		let obj = {
-			type: "touch",
-			time: new Date().getTime()
-		};
-		Sender.add(obj);
-	}
-
-	/**
-	 * Helper method for sending test data
-	 */
-	function testSend() {
-		let request = new XMLHttpRequest();
-		request.open('POST', '/ajax/data');
-		request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-		let data = [{
-			type: "test",
-			time: new Date().getTime()
-		}];
-		request.send(JSON.stringify(data));
 	}
 
 </script>
@@ -250,12 +140,8 @@
 		<video src="" autoplay muted></video>
 	</div>
 	<div class="controls">
-		<label id="all">Check all</label><br>
-		<label id="none">Uncheck all</label><br>
-		<hr>
-		<label id="position"><input type="checkbox"> Position</label><br>
-		<label id="rotation"><input type="checkbox"> Rotation</label><br>
-		<label id="motion"><input type="checkbox"> Motion</label>
+		Place the marker in the box in the middle of the video before starting detection. After starting, wait until the box disappears.
+		<label id="position"><input type="checkbox"> Detect</label><br>
 	</div>
 </div>
 </body>

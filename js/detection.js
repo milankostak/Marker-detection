@@ -7,7 +7,6 @@
  * @public
  * @requires transforms.js
  * @requires webgl-utils.js
- * @requires sender.js
  * @type {Object}
  * @author Milan Košťák
  * @version 3.0 alpha
@@ -41,14 +40,6 @@ const Detection = (function() {
 	let width, height;
 	// Float32Array
 	let readBuffer, readBuffer2;
-	// sequence of marker location
-	let positionSequence = 0;
-	// id of interval
-	let markerFoundCheckInterval;
-	// number, check every 50 ms if marker is lost
-	const markerFoundCheckIntervalTime = 50;
-	// boolean, if it remains false for 50ms then it means marker was lost
-	let dataSent = true;
 	// time measurement variables
 	const MEASURE_TIME = false, MEASURE_GPU = false;
 	const FINISH_COUNT = 1000;
@@ -289,8 +280,6 @@ const Detection = (function() {
 		width = canvas.width = videoWidth;
 		height = canvas.height = videoHeight;
 
-		Sender.add({type: "setup", width: width, height: height});
-
 		// allocate readBuffer for reading pixels
 		// do it now, because it is a time consuming operation
 		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
@@ -519,8 +508,6 @@ const Detection = (function() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
 		//console.log(readBuffer2);
 		if (MEASURE_TIME) window.performance.mark("a");
-
-		send({max: 100, x: readBuffer2[4], y: readBuffer2[0], count: 1});
 	}
 
 	/**
@@ -537,68 +524,13 @@ const Detection = (function() {
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
 	};
 
-	/**
-	 * Reset sequence variable and set interval for sending position.
-	 * @public
-	 */
 	Detection.restart = function() {
-		// restart the sequence so the receiver can also restart the relative position
-		positionSequence = 0;
-		markerFoundCheckInterval = window.setInterval(checkIfMarkerFound, markerFoundCheckIntervalTime);
+
 	};
 
-	/**
-	 * Clear sending interval and try to send any possible remaining data
-	 * @public
-	 */
 	Detection.finish = function() {
-		window.clearInterval(markerFoundCheckInterval);
-		let obj = {
-			type: "marker",
-			time: new Date().getTime(),
-			sequence: -1
-		};
-		Sender.add(obj)
+
 	};
-
-	/**
-	 * Create object and put it into queue for sending
-	 * @private
-	 * @param  {Object} obj2 information about marker
-	 */
-	function send(obj2) {
-		let obj = {
-			type: "marker",
-			time: new Date().getTime(),
-			sequence: ++positionSequence,
-			max: obj2.max,
-			x: obj2.x,
-			y: obj2.y,
-			count: obj2.count
-		};
-		Sender.add(obj);
-		dataSent = true;
-	}
-
-	/**
-	 * Function for sending found marker position to the server
-	 * @private
-	 */
-	function checkIfMarkerFound() {
-		if (!dataSent) {
-			let obj = {
-				type: "marker",
-				time: new Date().getTime(),
-				sequence: ++positionSequence,
-				max: 0,
-				x: 0,
-				y: 0,
-				count: 0
-			};
-			Sender.add(obj)
-		}
-		dataSent = false;
-	}
 
 	// export Detection object
 	return Detection;
