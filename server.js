@@ -17,32 +17,30 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const serveStatic = require('serve-static');
 
-//const fs = require('fs');
-//const https = require('https');
-//const privateKey  = fs.readFileSync('key2.key', 'utf8');
-//const certificate = fs.readFileSync('cert.crt', 'utf8');
+// const fs = require('fs');
+// const https = require('https');
+// const privateKey  = fs.readFileSync('key2.key', 'utf8');
+// const certificate = fs.readFileSync('cert.crt', 'utf8');
+// const credentials = {key: privateKey, cert: certificate};
 
-const app = express();
-// setup server with all important resources and listeners for ajax calls
-const server = app
+const app = express()
 	.use(serveStatic(__dirname, {'alphabet': false}))
 	.use(serveStatic(__dirname, {'controller': false}))
 	.use(serveStatic(__dirname, {'maze': false}))
 	.use(serveStatic(__dirname, {'pong': false}))
 	.use(bodyParser.json({limit: '5mb'}))
 	.post('/ajax/data', receiveData)
-	.post('/ajax/picture', receivePicture)
-	.listen(PORT, () => console.log(`App server is running.\nPort number: ${ PORT }`));
+	.post('/ajax/picture', receivePicture);
 
-//const credentials = {key: privateKey, cert: certificate};
-//const httpsServer = https.createServer(credentials, app).listen(3043);
+// const server = https.createServer(credentials, app).listen(PORT, () => console.log(`App HTTPS server is running.\nPort number: ${ PORT }`));
+const server = app.listen(PORT, () => console.log(`App HTTP server is running.\nPort number: ${ PORT }`));
 
 const wsServer = new WebSocket.Server({ server });
 console.log("WS: server is running.");
 
 wsServer.on('connection', (ws) => {
 	wsClients.push(ws);
-	var host = ws.upgradeReq.headers.host;
+	const host = ws.upgradeReq.headers.host;
 
 	console.log("WS: client connected from ", host);
 	console.log("WS: number of clients: ", wsClients.length);
@@ -98,7 +96,7 @@ function receivePicture(req, res) {
  * @param  {object} body JSON data
  */
 function forwardToClients(body) {
-	var data = JSON.stringify(body);
+	const data = JSON.stringify(body);
 
 	wsClients.forEach((client) => {
 		client.send(data);
