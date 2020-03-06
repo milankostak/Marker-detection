@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class FileUtils {
+class FileUtils {
 
     /**
      * Write content into a file. Forces UTF-8. File is rewritten if it exists.

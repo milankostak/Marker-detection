@@ -23,18 +23,23 @@ import java.util.stream.Collectors;
 
 public class Tag extends Application {
 
-    private int imageOrder = 0;
-    private List<Path> images;
-    private ImageView imageView;
+    private static final String BASE_PATH = "D:\\Python\\PycharmProjects\\Marker-detection\\python\\";
+    private static final String FILE = "test.txt";
+
     private Stage stage;
+    private Pane clickRectPane;
+    private ImageView imageView;
+    private Pane trueRectPane;
+
     private final List<ImageData> imageData = new ArrayList<>();
-    private Pane infoPane;
+    private List<Path> images;
+    private int imageOrder = 0;
 
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
         images = ImageUtils
-                .findAllImages("D:\\Python\\PycharmProjects\\Marker-detection\\python\\")
+                .findAllImages(BASE_PATH)
                 .sorted(Comparator.comparingInt(o -> Integer.parseInt(FileUtils.getFilenameWithoutExtension(o.getFileName().toString()))))
                 .collect(Collectors.toList());
 
@@ -43,8 +48,9 @@ public class Tag extends Application {
         imageView = new ImageView();
 
         Pane pane = new Pane();
-        infoPane = new Pane();
-        pane.getChildren().addAll(imageView, infoPane);
+        clickRectPane = new Pane();
+        trueRectPane = new Pane();
+        pane.getChildren().addAll(imageView, clickRectPane, trueRectPane);
 
         mainBox.getChildren().add(pane);
         loadImage();
@@ -68,7 +74,7 @@ public class Tag extends Application {
                 loadImage();
                 break;
             case C:
-                infoPane.getChildren().clear();
+                clickRectPane.getChildren().clear();
                 break;
         }
     }
@@ -80,7 +86,7 @@ public class Tag extends Application {
         Rectangle rectangle = new Rectangle(x - 3, y - 3, 6, 6);
         rectangle.setFill(Color.RED);
 
-        ObservableList<Node> rectangles = infoPane.getChildren();
+        ObservableList<Node> rectangles = clickRectPane.getChildren();
         rectangles.add(rectangle);
         if (rectangles.size() == 4) {
             // https://en.wikipedia.org/wiki/Centroid#Of_a_polygon
@@ -102,7 +108,8 @@ public class Tag extends Application {
             double cy = sumY / (6 * sumA);
 
             rectangles.clear();
-            rectangles.add(new Rectangle(cx - 3, cy - 3, 6, 6));
+            trueRectPane.getChildren().clear();
+            trueRectPane.getChildren().add(new Rectangle(cx - 3, cy - 3, 6, 6));
 
             Optional<ImageData> imageDataOptional = imageData.stream()
                     .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
@@ -118,11 +125,12 @@ public class Tag extends Application {
     }
 
     private void loadData() {
-        String file = FileUtils.readFile("test.txt");
+        String file = FileUtils.readFile(BASE_PATH + FILE);
         if (file.isEmpty()) return;
-        String[] lines = file.split("\n");
+        String[] lines = file.split(System.lineSeparator());
         for (String s : lines) {
             String[] split = s.split(",");
+            if (split.length != 3) continue;
             int x = Integer.parseInt(split[1]);
             int y = Integer.parseInt(split[2]);
             imageData.add(new ImageData(split[0], x, y));
@@ -132,13 +140,14 @@ public class Tag extends Application {
     private void saveData() {
         StringBuilder sb = new StringBuilder();
         for (ImageData image : imageData) {
-            sb.append(image.toString());
+            sb.append(image.toString()).append(System.lineSeparator());
         }
-        FileUtils.writeFile("test.txt", sb.toString());
+        FileUtils.writeFile(BASE_PATH + FILE, sb.toString());
     }
 
     private void loadImage() {
-        infoPane.getChildren().clear();
+        clickRectPane.getChildren().clear();
+        trueRectPane.getChildren().clear();
 
         if (imageOrder < 0) imageOrder = 0;
         else if (imageOrder >= images.size()) imageOrder = images.size() - 1;
@@ -152,7 +161,7 @@ public class Tag extends Application {
 
         if (imageDataOptional.isPresent()) {
             ImageData id = imageDataOptional.get();
-            infoPane.getChildren().add(new Rectangle(id.x - 3, id.y - 3, 6, 6));
+            trueRectPane.getChildren().add(new Rectangle(id.x - 3, id.y - 3, 6, 6));
         }
 
         stage.setTitle(images.get(imageOrder).getFileName().toString());

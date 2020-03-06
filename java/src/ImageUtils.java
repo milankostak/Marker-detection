@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-public class ImageUtils {
+class ImageUtils {
 
     /**
      * Find an image in active folder by filename
