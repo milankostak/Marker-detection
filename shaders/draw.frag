@@ -1,6 +1,6 @@
 precision mediump float;
 
-uniform float runDetection; // 1 running, 0 not
+uniform float drawSquare; // 1 draw, 0 not
 uniform float width;
 uniform float height;
 

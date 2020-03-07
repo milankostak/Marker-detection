@@ -126,5 +126,14 @@ label.pulse {
 }
 
 .hidden {
-	display: none;
+	display: none !important;
+}
+
+#color {
+	width: 50px;
+	height: 50px;
+	margin-left: calc(50% - 25px);
+}
+#color_text {
+	font-size: 15px;
 }

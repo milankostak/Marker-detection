@@ -25,7 +25,7 @@ const Detection = (() => {
 	// WebGLRenderingContext or WebGL2RenderingContext
 	let gl;
 	// WebGLProgram
-	let program3, program4, programDraw;
+	let program3, program4, programDraw, programColor;
 	// WebGLBuffer
 	let vertexBuffer, indexBuffer;
 	// WebGLTexture
@@ -38,8 +38,12 @@ const Detection = (() => {
 	let internalFormatTexture;
 	// numbers, input width and height
 	let width, height;
+	// color has to be detected before marker detection can be executed
+	let detectedColor = false;
+	// Float32Array, color that is supposed to be detected with its variance
+	let targetColor, targetVariance;
 	// Float32Array
-	let readBuffer, readBuffer2;
+	let readBuffer, readBuffer2, readBufferColor;
 	// time measurement variables
 	const MEASURE_TIME = false, MEASURE_GPU = false;
 	const FINISH_COUNT = 1000;
@@ -167,6 +171,18 @@ const Detection = (() => {
 	 * @private
 	 */
 	function initPrograms() {
+		// program that detects color of a marker
+		programColor = gl.createProgram();
+		Utils.initShaders(gl, programColor, "/shaders/main.vert", "/shaders/color.frag", true);
+		gl.linkProgram(programColor);
+		gl.useProgram(programColor);
+
+		programColor.vertexPositionAttribute = gl.getAttribLocation(programColor, "aVertexPosition");
+		programColor.width = gl.getUniformLocation(programColor, "width");
+		programColor.height = gl.getUniformLocation(programColor, "height");
+		programColor.texture = gl.getUniformLocation(programColor, "texture");
+
+
 		program3 = gl.createProgram();
 		Utils.initShaders(gl, program3, "/shaders/main.vert", "/shaders/step1.frag", true);
 		gl.linkProgram(program3);
@@ -176,6 +192,9 @@ const Detection = (() => {
 		program3.texture = gl.getUniformLocation(program3, "texture");
 		program3.width = gl.getUniformLocation(program3, "width");
 		program3.height = gl.getUniformLocation(program3, "height");
+		program3.targetColor = gl.getUniformLocation(program3, "targetColor");
+		program3.targetVariance = gl.getUniformLocation(program3, "targetVariance");
+
 
 		program4 = gl.createProgram();
 		Utils.initShaders(gl, program4, "/shaders/main.vert", "/shaders/step2.frag", true);
@@ -196,7 +215,7 @@ const Detection = (() => {
 
 		programDraw.vertexPositionAttribute = gl.getAttribLocation(programDraw, "aVertexPosition");
 		programDraw.rotation = gl.getUniformLocation(programDraw, "rotation");
-		programDraw.runDetection = gl.getUniformLocation(programDraw, "runDetection");
+		programDraw.drawSquare = gl.getUniformLocation(programDraw, "drawSquare");
 		programDraw.width = gl.getUniformLocation(programDraw, "width");
 		programDraw.height = gl.getUniformLocation(programDraw, "height");
 		programDraw.texture = gl.getUniformLocation(programDraw, "texture");
@@ -280,6 +299,7 @@ const Detection = (() => {
 		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
 		readBuffer = new Float32Array(arraySize);
 		readBuffer2 = new Float32Array(2 * 4); // 2 pixels
+		readBufferColor = new Float32Array(10 * 10 * 4); // 10×10 grid, RGBA
 	};
 
 	/**
@@ -290,7 +310,13 @@ const Detection = (() => {
 	 */
 	Detection.repaint = (runDetection) => {
 		if (!runDetection) {
-			renderSimple(runDetection);
+			renderSimple(false);
+			return;
+		}
+
+		if (!detectedColor) {
+			detectColor();
+			renderSimple(false);
 			return;
 		}
 
@@ -331,6 +357,9 @@ const Detection = (() => {
 		gl.uniform1f(program3.width, width);
 		// noinspection JSSuspiciousNameCombination
 		gl.uniform1f(program3.height, height);
+
+		gl.uniform3fv(program3.targetColor, targetColor);
+		gl.uniform3fv(program3.targetVariance, targetVariance);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
 		// target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels)
@@ -443,6 +472,112 @@ const Detection = (() => {
 		}
 	};
 
+	function detectColor() {
+		gl.useProgram(programColor);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+		gl.vertexAttribPointer(programColor.vertexPositionAttribute, vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(programColor.vertexPositionAttribute);
+
+		// bind framebuffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+
+		gl.uniform1f(programColor.width, width);
+		// noinspection JSSuspiciousNameCombination
+		gl.uniform1f(programColor.height, height);
+
+		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
+		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
+		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormatTexture, 10, 10, 0, gl.RGBA, texturePrecision, null);
+
+		gl.viewport(0, 0, 10, 10);
+
+		// draw to outputTexture
+		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outputTexture, 0);
+
+		// bind input texture
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
+
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
+		gl.readPixels(0, 0, 10, 10, gl.RGBA, gl.FLOAT, readBufferColor);
+		// console.log(readBufferColor);
+
+		const sum = [0, 0, 0];
+		const min = [readBufferColor[0], readBufferColor[1], readBufferColor[2]];
+		const max = [readBufferColor[0], readBufferColor[1], readBufferColor[2]];
+		for (let i = 0; i < 400; i += 4) {
+			for (let j = 0; j < 3; j++) {
+				let value = readBufferColor[i + j];
+				if (value > max[j]) max[j] = value;
+				if (value < max[j]) max[j] = value;
+				sum[j] += value;
+			}
+		}
+
+		// subtract extreme values
+		for (let j = 0; j < 3; j++) {
+			sum[j] -= min[j];
+			sum[j] -= max[j];
+			sum[j] /= 98;
+		}
+		const meanHue = sum[0];
+		const meanSaturation = sum[1];
+		const meanValue = sum[2];
+		console.log(meanHue, meanSaturation, meanValue);
+
+		// calculate variance
+		const sumOfDiffs = [0, 0, 0];
+		const mean = [meanHue, meanSaturation, meanValue];
+		for (let i = 0; i < 400; i += 4) {
+			for (let j = 0; j < 3; j++) {
+				let value = readBufferColor[i + j];
+				sumOfDiffs[j] += Math.pow(value - mean[j], 2);
+			}
+		}
+		// subtract extreme values
+		for (let j = 0; j < 3; j++) {
+			sumOfDiffs[j] -= Math.pow(max[j] - mean[j], 2);
+			sumOfDiffs[j] -= Math.pow(min[j] - mean[j], 2);
+			sumOfDiffs[j] /= 98;
+			// sumOfDiffs[j] = Math.sqrt(sumOfDiffs[j]);
+		}
+		const varianceHue = sumOfDiffs[0];
+		const varianceSaturation = sumOfDiffs[1];
+		const varianceValue = sumOfDiffs[2];
+		console.log(varianceHue, varianceSaturation, varianceValue);
+
+		if (meanHue !== 0) {
+			detectedColor = true;
+			targetColor = Float32Array.from(mean);
+			targetVariance = Float32Array.from([varianceHue, varianceSaturation, varianceValue]);
+
+			const hsl = hsvToHsl([meanHue, meanSaturation * 100, meanValue * 100]);
+			const string = "hsl(" + Math.round(hsl[0]) + ", " + Math.round(hsl[1]) + "%, " + Math.round(hsl[2]) + "%)";
+			document.querySelector("#color").style.backgroundColor = string;
+			document.querySelector("#color_text").textContent = string;
+			document.querySelector("label#reset").classList.remove("hidden");
+		}
+	}
+
+	/**
+	 * Converts HSV to HSL color model.
+	 * https://stackoverflow.com/questions/3423214/convert-hsb-hsv-color-to-hsl/17668371#17668371
+	 */
+	function hsvToHsl(hsv) {
+		// determine the lightness in the range [0, 100]
+		const l = (2 - hsv[1] / 100) * hsv[2] / 2;
+		// [0, 360]
+		const h = hsv[0];
+		// [0, 100]
+		let s = hsv[1] * hsv[2] / (l < 50 ? l * 2 : 200 - l * 2);
+		// correct a division-by-zero error
+		if (isNaN(s)) s = 0;
+		return [h, s, l];
+	}
+
 	/**
 	 * @private
 	 */
@@ -455,7 +590,7 @@ const Detection = (() => {
 		gl.enableVertexAttribArray(programDraw.vertexPositionAttribute);
 
 		gl.uniformMatrix4fv(programDraw.rotation, false, Utils.convert(new Mat4RotX(Math.PI)));
-		gl.uniform1f(programDraw.runDetection, runDetection ? 1.0 : 0.0);
+		gl.uniform1f(programDraw.drawSquare, detectedColor || runDetection ? 0.0 : 1.0);
 		gl.uniform1f(programDraw.width, width);
 		// noinspection JSSuspiciousNameCombination
 		gl.uniform1f(programDraw.height, height);
@@ -464,11 +599,9 @@ const Detection = (() => {
 		gl.uniform1i(programDraw.texture, 0);
 		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
 
-		if (runDetection) {
-			gl.activeTexture(gl.TEXTURE1);
-			gl.uniform1i(programDraw.coordTexture, 1);
-			gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
-		}
+		gl.activeTexture(gl.TEXTURE1);
+		gl.uniform1i(programDraw.coordTexture, 1);
+		gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
 
 		gl.viewport(0, 0, width, height);
 
@@ -541,7 +674,7 @@ const Detection = (() => {
 	};
 
 	Detection.restart = function() {
-
+		detectedColor = false;
 	};
 
 	Detection.finish = function() {

@@ -4,13 +4,14 @@ uniform sampler2D texture;
 uniform float width;
 uniform float height;
 
-const float thresholdG = 0.6;
-const float thresholdRB = 0.4;
 const float threshold = 20.0;
 
-const vec3 targetColor = vec3(120, 1, 1);
+//const vec3 targetColor = vec3(120, 1, 1);
+uniform vec3 targetColor;// in HSV
+uniform vec3 targetVariance;
 
 // https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl
+// https://en.wikipedia.org/wiki/HSL_and_HSV
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
     vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
@@ -33,8 +34,11 @@ float distanceInHsv(vec3 target, vec3 current) {
 float getPixelWeight(vec2 texCoords) {
     vec4 pixel = texture2D(texture, texCoords);
     vec3 hsv = rgb2hsv(pixel.rgb);
-    if (hsv.x > targetColor.x - threshold && hsv.x < targetColor.x + threshold && hsv.y > 0.7 && hsv.z > 0.5) {
-        return distanceInHsv(targetColor, hsv);
+    bool hueInRange = hsv.x > targetColor.x - threshold && hsv.x < targetColor.x + threshold;
+    bool saturationInRange = hsv.y > targetColor.y - 0.1 && hsv.y < targetColor.y + 0.1;
+    bool valueInRange = hsv.z > targetColor.z - 0.1 && hsv.z < targetColor.z + 0.1;
+    if (hueInRange && saturationInRange && valueInRange) {
+        return distanceInHsv(targetColor, hsv);;
     } else {
         return 0.0;
     }
