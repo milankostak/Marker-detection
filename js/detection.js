@@ -66,38 +66,9 @@ const Detection = (() => {
 		initTextures();
 		initBuffers();
 		if (MEASURE_TIME) initTimeMeasurement();
-
-		/*let img = new Image();
-		img.src = "integral1.png";
-		img.onload = function () {
-			setupAfterLoad(img);
-			refreshTexture(img);
-			Detection.repaint();
-		};*/
-
 		return true;
 	};
-/*
-	function setupAfterLoad(img) {
-		width = canvas.width = img.width;
-		height = canvas.height = img.height;
 
-		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
-		readBuffer = new Float32Array(arraySize);
-		readBuffer2 = new Float32Array(2 * 4);
-	}
-
-	function refreshTexture(img) {
-		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	}
-*/
 	/**
 	 * Init canvas and gl and get texture precision from extension
 	 * @private
@@ -277,6 +248,10 @@ const Detection = (() => {
 		indexBuffer.numItems = scene.indices.length;
 	}
 
+	/**
+	 * Generate time slots
+	 * @private
+	 */
 	function initTimeMeasurement() {
 		for (let i = 0; i < timeSlots; i++) {
 			times[i] = [];
@@ -304,8 +279,7 @@ const Detection = (() => {
 
 	/**
 	 * Main function
-	 * Runs the key algorithm
-	 * @param runDetection false if only show video, true if run marker detection
+	 * @param runDetection if false then only show video, if true then run color or marker detection
 	 * @public
 	 */
 	Detection.repaint = (runDetection) => {
@@ -362,7 +336,7 @@ const Detection = (() => {
 		gl.uniform3fv(program3.targetVariance, targetVariance);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
-		// target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels)
+		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
 		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormatTexture, Math.max(width, height), 2, 0, gl.RGBA, texturePrecision, null);
 
 		gl.viewport(0, 0, Math.max(width, height), 2);
@@ -452,7 +426,7 @@ const Detection = (() => {
 	///
 	/// 3. step: read data
 	///
-		readData2();
+	// 	readData2();
 
 	///
 	///  4. step: optionally draw result
@@ -579,6 +553,7 @@ const Detection = (() => {
 	}
 
 	/**
+	 * Render only camera texture with coordinates of found marker
 	 * @private
 	 */
 	function renderSimple(runDetection) {
@@ -617,7 +592,7 @@ const Detection = (() => {
 		const realWidth = Math.max(width, height);
 		// https://stackoverflow.com/questions/28282935/working-around-webgl-readpixels-being-slow
 		gl.readPixels(0, 0, realWidth, 2, gl.RGBA, gl.FLOAT, readBuffer);
-		//console.log(readBuffer);
+		// console.log(readBuffer);
 		if (MEASURE_TIME) window.performance.mark("a");
 
 		let sumRow = 0, sumRowAll = 0;
