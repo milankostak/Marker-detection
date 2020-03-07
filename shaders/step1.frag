@@ -99,5 +99,5 @@ void main(void) {
     }
 
     // save count (in the row or column); save weight - sum  * coord (used later)
-    gl_FragColor = vec4(sum, sum * (gl_FragCoord.x + 0.5), 0, 0);
+    gl_FragColor = vec4(sum, gl_FragCoord.x + 0.5, 0, 0);
 }

@@ -14,7 +14,7 @@ void main(void) {
         vec4 pixel = texture2D(texture, texCoords);
         if (pixel.r > 0.5) {
             sum += pixel.r;
-            sumAll += pixel.g;
+            sumAll += pixel.g * pixel.r;
             count++;
         }
     }
