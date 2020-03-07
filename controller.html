@@ -86,7 +86,11 @@
 				Detection.updateTexture(img);
 				Detection.repaint(true);
 				const readData = Detection.getReadBuffer2();
-				console.log(name + ".jpg," + readData[0] + "," + (img.height - readData[4]));
+				if (readData[0] === 0 && readData[4] === 0) {
+					console.log(name + ".jpg,-1,-1");
+				} else {
+					console.log(name + ".jpg," + readData[0] + "," + (img.height - readData[4]));
+				}
 			};
 			img.src = "/python/" + name + ".jpg";
 		}

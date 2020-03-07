@@ -17,7 +17,7 @@ for i in range(count):
     result_line = result_lines[i].split(",")
 
     if gt_line[1] == "-1" and gt_line[2] == "-1" and result_line[1] != "-1" and result_line[2] != "-1":
-        # ground truth  - no marker
+        # ground truth - no marker
         # detection - marker found
         false_positive_count += 1
     elif gt_line[1] != "-1" and gt_line[2] != "-1" and result_line[1] == "-1" and result_line[2] == "-1":

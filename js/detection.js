@@ -11,7 +11,7 @@
  * @author Milan Košťák
  * @version 3.0 alpha
  */
-const Detection = (function() {
+const Detection = (() => {
 
 	/**
 	 * Main object which is exported into public Detection variable.
@@ -54,7 +54,7 @@ const Detection = (function() {
 	 * @public
 	 * @return {boolean} true or false if the initialization was successful
 	 */
-	Detection.init = function() {
+	Detection.init = () => {
 		if (!initWebGL()) return false;
 		initBasics();
 		initPrograms();
@@ -100,11 +100,11 @@ const Detection = (function() {
 	 */
 	function initWebGL() {
 		canvas = document.querySelector("canvas");
-		gl = canvas.getContext("webgl2", {antialias:false});
+		gl = canvas.getContext("webgl2", {antialias: false});
 
 		// if WebGL2 is not supported try to fall-back to version 1
 		if (!gl) {
-			gl = canvas.getContext("experimental-webgl", {antialias:false});
+			gl = canvas.getContext("experimental-webgl", {antialias: false});
 
 			// even WebGL1 is not supported - not much to do without it
 			if (!gl) {
@@ -277,7 +277,7 @@ const Detection = (function() {
 	 * @param  {Number} videoWidth  width of the source video
 	 * @param  {Number} videoHeight height of the source video
 	 */
-	Detection.setupAfterVideoStreamIsReady = function(videoWidth, videoHeight) {
+	Detection.setupAfterVideoStreamIsReady = (videoWidth, videoHeight) => {
 		width = canvas.width = videoWidth;
 		height = canvas.height = videoHeight;
 
@@ -294,7 +294,7 @@ const Detection = (function() {
 	 * @param runDetection false if only show video, true if run marker detection
 	 * @public
 	 */
-	Detection.repaint = function(runDetection) {
+	Detection.repaint = (runDetection) => {
 		if (!runDetection) {
 			renderSimple(runDetection);
 			return;
@@ -312,7 +312,7 @@ const Detection = (function() {
 			}
 
 			console.log(result);
-			//alert(result);
+			// alert(result);
 
 			currentCount = 0;
 			initTimeMeasurement();
@@ -335,6 +335,7 @@ const Detection = (function() {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
 		gl.uniform1f(program3.width, width);
+		// noinspection JSSuspiciousNameCombination
 		gl.uniform1f(program3.height, height);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
@@ -361,7 +362,7 @@ const Detection = (function() {
 				let timeElapsed = (gl instanceof WebGLRenderingContext) ?
 					timerQueryExt.getQueryObjectEXT(timerQuery, timerQueryExt.QUERY_RESULT_EXT) :
 					gl.getQueryParameter(timerQuery, gl.QUERY_RESULT);
-				//console.log("timeElapsed ", timeElapsed);
+				// console.log("timeElapsed ", timeElapsed);
 				times.push(timeElapsed);
 				currentCount++;
 				if (currentCount > FINISH_COUNT) {
@@ -391,7 +392,7 @@ const Detection = (function() {
 		}
 
 		if (MEASURE_TIME) window.performance.mark("a");
-		//readData();
+		// readData();
 	///
 	/// 2. step: find marker
 	///
@@ -405,6 +406,7 @@ const Detection = (function() {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
 		gl.uniform1f(program4.width, width);
+		// noinspection JSSuspiciousNameCombination
 		gl.uniform1f(program4.height, height);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
@@ -427,7 +429,7 @@ const Detection = (function() {
 	///
 	/// 3. step: read data
 	///
-		//readData2();
+		readData2();
 
 	///
 	///  4. step: optionally draw result
@@ -465,6 +467,7 @@ const Detection = (function() {
 		gl.uniformMatrix4fv(programDraw.rotation, false, Utils.convert(new Mat4RotX(Math.PI)));
 		gl.uniform1f(programDraw.runDetection, runDetection ? 1.0 : 0.0);
 		gl.uniform1f(programDraw.width, width);
+		// noinspection JSSuspiciousNameCombination
 		gl.uniform1f(programDraw.height, height);
 
 		gl.activeTexture(gl.TEXTURE0);
@@ -482,8 +485,6 @@ const Detection = (function() {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 	}
-
-	let xCoord, yCoord;
 
 	/**
 	 * Read output data from frame buffer after first step.
@@ -504,7 +505,7 @@ const Detection = (function() {
 				sumRowAll += readBuffer[i + 1];
 			}
 		}
-		yCoord = sumRowAll / sumRow;
+		const yCoord = sumRowAll / sumRow;
 
 		let sumCol = 0, sumColAll = 0;
 		for (let i = 0; i < width * 4; i += 4) { // every pixel in the 1st row and each pixel has four values (RGBA)
@@ -514,7 +515,7 @@ const Detection = (function() {
 				sumColAll += readBuffer[i + 1];
 			}
 		}
-		xCoord = sumColAll / sumCol;
+		const xCoord = sumColAll / sumCol;
 
 		console.log(xCoord, sumColAll, sumCol, "xCoord, col");
 		console.log(yCoord, sumRowAll, sumRow, "yCoord, row");
@@ -526,7 +527,7 @@ const Detection = (function() {
 	 */
 	function readData2() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
-		//console.log(readBuffer2);
+		// console.log(readBuffer2);
 		if (MEASURE_TIME) window.performance.mark("a");
 	}
 
@@ -535,10 +536,10 @@ const Detection = (function() {
 	};
 
 	/**
-	 * Update cameraTexture from video feed
+	 * Update cameraTexture from video feed or image
 	 * @public
 	 */
-	Detection.updateTexture = function(video) {
+	Detection.updateTexture = (source) => {
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -546,7 +547,7 @@ const Detection = (function() {
 		// Firefox warning: Failed to hit GPU-copy fast-path. Falling back to CPU upload.
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=1246410
 		// https://bugzilla.mozilla.org/show_bug.cgi?id=1322746
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
 	};
 
 	Detection.restart = function() {
