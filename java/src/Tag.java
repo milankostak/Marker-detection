@@ -23,8 +23,10 @@ import java.util.stream.Collectors;
 
 public class Tag extends Application {
 
-    private static final String BASE_PATH = "D:\\Python\\PycharmProjects\\Marker-detection\\python\\";
+    private static final String BASE_PATH = "..\\python\\";
     private static final String FILE = "test.txt";
+    private static final int WIDTH = 6;
+    private static final int HALF_WIDTH = 3;
 
     private Stage stage;
     private Pane clickRectPane;
@@ -53,8 +55,8 @@ public class Tag extends Application {
         pane.getChildren().addAll(imageView, clickRectPane, trueRectPane);
 
         mainBox.getChildren().add(pane);
-        loadImage();
         loadData();
+        loadImage();
 
         Scene scene = new Scene(mainBox);
         scene.setOnKeyPressed(this::handleSceneKeyPressed);
@@ -79,11 +81,11 @@ public class Tag extends Application {
         }
     }
 
-
+    @SuppressWarnings("SuspiciousNameCombination")
     private void handleMouseClicked(MouseEvent mouseEvent) {
         double x = mouseEvent.getX();
         double y = mouseEvent.getY();
-        Rectangle rectangle = new Rectangle(x - 3, y - 3, 6, 6);
+        Rectangle rectangle = new Rectangle(x - HALF_WIDTH, y - HALF_WIDTH, WIDTH, WIDTH);
         rectangle.setFill(Color.RED);
 
         ObservableList<Node> rectangles = clickRectPane.getChildren();
@@ -94,7 +96,6 @@ public class Tag extends Application {
             double sumY = 0;
             double sumA = 0;
             for (int i = 0; i < rectangles.size(); i++) {
-
                 Rectangle rect1 = (Rectangle) rectangles.get(i);
                 Rectangle rect2 = (Rectangle) rectangles.get((i + 1) % rectangles.size());
                 double v = rect1.getX() * rect2.getY() - rect2.getX() * rect1.getY();
@@ -109,7 +110,7 @@ public class Tag extends Application {
 
             rectangles.clear();
             trueRectPane.getChildren().clear();
-            trueRectPane.getChildren().add(new Rectangle(cx - 3, cy - 3, 6, 6));
+            trueRectPane.getChildren().add(new Rectangle(cx, cy, WIDTH, WIDTH));
 
             Optional<ImageData> imageDataOptional = imageData.stream()
                     .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
@@ -117,8 +118,8 @@ public class Tag extends Application {
 
             if (imageDataOptional.isPresent()) {
                 ImageData imageData = imageDataOptional.get();
-                imageData.x = (int) Math.round(cx);
-                imageData.y = (int) Math.round(cy);
+                imageData.x = (int) Math.round(cx + HALF_WIDTH);
+                imageData.y = (int) Math.round(cy + HALF_WIDTH);
                 saveData();
             }
         }
