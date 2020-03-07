@@ -196,10 +196,11 @@ const Detection = (function() {
 		programDraw.vertexPositionAttribute = gl.getAttribLocation(programDraw, "aVertexPosition");
 		programDraw.vertexTexCoordAttribute = gl.getAttribLocation(programDraw, "aTextureCoord");
 		programDraw.rotation = gl.getUniformLocation(programDraw, "rotation");
+		programDraw.runDetection = gl.getUniformLocation(programDraw, "runDetection");
+		programDraw.width = gl.getUniformLocation(programDraw, "width");
+		programDraw.height = gl.getUniformLocation(programDraw, "height");
 		programDraw.texture = gl.getUniformLocation(programDraw, "texture");
 		programDraw.coordTexture = gl.getUniformLocation(programDraw, "coordTexture");
-		programDraw.xCoord = gl.getUniformLocation(programDraw, "xCoord");
-		programDraw.yCoord = gl.getUniformLocation(programDraw, "yCoord");
 	}
 
 	/**
@@ -290,9 +291,14 @@ const Detection = (function() {
 	/**
 	 * Main function
 	 * Runs the key algorithm
+	 * @param runDetection false if only show video, true if run marker detection
 	 * @public
 	 */
-	Detection.repaint = function() {
+	Detection.repaint = function(runDetection) {
+		if (!runDetection) {
+			renderSimple(runDetection);
+			return;
+		}
 
 		if (MEASURE_TIME && ++currentCount === FINISH_COUNT) {
 			let t = [];
@@ -425,31 +431,7 @@ const Detection = (function() {
 	//  4. step: optionally draw result
 	///
 		// draw the output from previous draw cycle into canvas
-		gl.useProgram(programDraw);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-		gl.vertexAttribPointer(programDraw.vertexPositionAttribute, vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programDraw.vertexPositionAttribute);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-		gl.vertexAttribPointer(programDraw.vertexTexCoordAttribute, textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programDraw.vertexTexCoordAttribute);
-
-		gl.uniformMatrix4fv(programDraw.rotation, false, Utils.convert(new Mat4RotX(Math.PI)));
-
-		gl.activeTexture(gl.TEXTURE0);
-		gl.uniform1i(programDraw.texture, 0);
-		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
-
-		gl.activeTexture(gl.TEXTURE1);
-		gl.uniform1i(programDraw.coordTexture, 1);
-		gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
-
-		gl.viewport(0, 0, width, height);
-
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+		renderSimple(runDetection);
 
 	///
 	/// 5. step: save time if turned on
@@ -462,6 +444,42 @@ const Detection = (function() {
 			}
 		}
 	};
+
+	/**
+	 * @private
+	 */
+	function renderSimple(runDetection) {
+		gl.useProgram(programDraw);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+		gl.vertexAttribPointer(programDraw.vertexPositionAttribute, vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(programDraw.vertexPositionAttribute);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
+		gl.vertexAttribPointer(programDraw.vertexTexCoordAttribute, textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(programDraw.vertexTexCoordAttribute);
+
+		gl.uniformMatrix4fv(programDraw.rotation, false, Utils.convert(new Mat4RotX(Math.PI)));
+		gl.uniform1f(programDraw.runDetection, runDetection ? 1.0 : 0.0);
+		gl.uniform1f(programDraw.width, width);
+		gl.uniform1f(programDraw.height, height);
+
+		gl.activeTexture(gl.TEXTURE0);
+		gl.uniform1i(programDraw.texture, 0);
+		gl.bindTexture(gl.TEXTURE_2D, cameraTexture);
+
+		if (runDetection) {
+			gl.activeTexture(gl.TEXTURE1);
+			gl.uniform1i(programDraw.coordTexture, 1);
+			gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
+		}
+
+		gl.viewport(0, 0, width, height);
+
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+	}
 
 	let xCoord, yCoord;
 

@@ -14,7 +14,7 @@
 	let video;
 	// is detection currently being performed? - if animation is running
 	// also, it is used to make sure that animation is running only once
-	let isAnimating = false;
+	let isDetecting = false;
 
 	window.onload = function() {
 		let initResult = Detection.init();
@@ -70,11 +70,9 @@
 	 * Main animation function that triggers detection in the image from camera
 	 */
 	function animate() {
-		if (isAnimating) {
-			Detection.updateTexture(video);
-			Detection.repaint();
-			window.requestAnimationFrame(animate);
-		}
+		Detection.updateTexture(video);
+		Detection.repaint(isDetecting);
+		window.requestAnimationFrame(animate);
 	}
 
 	/**
@@ -86,6 +84,8 @@
 		// hide loading message
 		document.querySelector(".loading-container").classList.add("hidden");
 		document.querySelector(".main").classList.remove("hidden");
+
+		window.requestAnimationFrame(animate);
 	}
 
 	/**
@@ -94,15 +94,10 @@
 	function doPosition() {
 		if (document.querySelector("label#position input").checked) {
 			document.querySelector("label#position").classList.add("active");
-			if (!isAnimating) {
-				isAnimating = true;
-				Detection.restart();
-				animate();
-			}
+			isDetecting = true;
 		} else {
 			document.querySelector("label#position").classList.remove("active");
-			Detection.finish();
-			isAnimating = false;
+			isDetecting = false;
 		}
 	}
 
