@@ -27,7 +27,7 @@ const Detection = (() => {
 	// WebGLProgram
 	let program3, program4, programDraw;
 	// WebGLBuffer
-	let vertexBuffer, indexBuffer, textureBuffer;
+	let vertexBuffer, indexBuffer;
 	// WebGLTexture
 	let cameraTexture, outputTexture, outputTexture2;
 	// WebGLFramebuffer
@@ -187,6 +187,7 @@ const Detection = (() => {
 		program4.width = gl.getUniformLocation(program4, "width");
 		program4.height = gl.getUniformLocation(program4, "height");
 
+
 		// basic draw program, doesn't do anything special in shaders
 		programDraw = gl.createProgram();
 		Utils.initShaders(gl, programDraw, "/shaders/draw.vert", "/shaders/draw.frag", true);
@@ -194,7 +195,6 @@ const Detection = (() => {
 		gl.useProgram(programDraw);
 
 		programDraw.vertexPositionAttribute = gl.getAttribLocation(programDraw, "aVertexPosition");
-		programDraw.vertexTexCoordAttribute = gl.getAttribLocation(programDraw, "aTextureCoord");
 		programDraw.rotation = gl.getUniformLocation(programDraw, "rotation");
 		programDraw.runDetection = gl.getUniformLocation(programDraw, "runDetection");
 		programDraw.width = gl.getUniformLocation(programDraw, "width");
@@ -256,12 +256,6 @@ const Detection = (() => {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(scene.indices), gl.STATIC_DRAW);
 		indexBuffer.itemSize = 1;
 		indexBuffer.numItems = scene.indices.length;
-
-		textureBuffer = gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(scene.textureCoords), gl.STATIC_DRAW);
-		textureBuffer.itemSize = 2;
-		textureBuffer.numItems = scene.textureCoords.length;
 	}
 
 	function initTimeMeasurement() {
@@ -459,10 +453,6 @@ const Detection = (() => {
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 		gl.vertexAttribPointer(programDraw.vertexPositionAttribute, vertexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(programDraw.vertexPositionAttribute);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, textureBuffer);
-		gl.vertexAttribPointer(programDraw.vertexTexCoordAttribute, textureBuffer.itemSize, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programDraw.vertexTexCoordAttribute);
 
 		gl.uniformMatrix4fv(programDraw.rotation, false, Utils.convert(new Mat4RotX(Math.PI)));
 		gl.uniform1f(programDraw.runDetection, runDetection ? 1.0 : 0.0);

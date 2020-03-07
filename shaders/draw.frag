@@ -7,11 +7,9 @@ uniform float height;
 uniform sampler2D texture;
 uniform sampler2D coordTexture;
 
-varying vec2 textureCoord;
-
 void main(void) {
-	vec4 cameraColor = texture2D(texture, textureCoord);
-	if (runDetection == 1.0) {
+	vec4 cameraColor = texture2D(texture, vec2(gl_FragCoord.x / width, gl_FragCoord.y / height));
+	if (drawSquare == 0.0) {
 		float xCoord = texture2D(coordTexture, vec2(0.5, 0.25)).r;
 		float yCoord = texture2D(coordTexture, vec2(0.5, 0.75)).r;
 //		gl_FragColor = vec4(xCoord, yCoord, 0, 1);
