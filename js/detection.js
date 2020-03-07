@@ -62,7 +62,7 @@ const Detection = (function() {
 		initTextures();
 		initBuffers();
 		if (MEASURE_TIME) initTimeMeasurement();
-		
+
 		/*let img = new Image();
 		img.src = "integral1.png";
 		img.onload = function () {
@@ -382,7 +382,9 @@ const Detection = (function() {
 			if (gl instanceof WebGLRenderingContext) timerQueryExt.beginQueryEXT(timerQueryExt.TIME_ELAPSED_EXT, timerQuery);
 			else gl.beginQuery(timerQueryExt.TIME_ELAPSED_EXT, timerQuery);
 		}
+
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+
 		if (MEASURE_GPU && queryRead) {
 			if (gl instanceof WebGLRenderingContext) timerQueryExt.endQueryEXT(timerQueryExt.TIME_ELAPSED_EXT);
 			else gl.endQuery(timerQueryExt.TIME_ELAPSED_EXT);
@@ -406,7 +408,7 @@ const Detection = (function() {
 		gl.uniform1f(program4.height, height);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
-		// target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels)
+		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
 		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormatTexture, 1, 2, 0, gl.RGBA, texturePrecision, null);
 
 		gl.viewport(0, 0, 1, 2);
@@ -428,7 +430,7 @@ const Detection = (function() {
 		//readData2();
 
 	///
-	//  4. step: optionally draw result
+	///  4. step: optionally draw result
 	///
 		// draw the output from previous draw cycle into canvas
 		renderSimple(runDetection);
@@ -530,6 +532,7 @@ const Detection = (function() {
 
 	/**
 	 * Update cameraTexture from video feed
+	 * @public
 	 */
 	Detection.updateTexture = function(video) {
 		gl.activeTexture(gl.TEXTURE0);

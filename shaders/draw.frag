@@ -14,7 +14,7 @@ void main(void) {
 	if (runDetection == 1.0) {
 		float xCoord = texture2D(coordTexture, vec2(0.5, 0.25)).r;
 		float yCoord = texture2D(coordTexture, vec2(0.5, 0.75)).r;
-		gl_FragColor = vec4(xCoord, 0, 0, 1);
+//		gl_FragColor = vec4(xCoord, yCoord, 0, 1);
 
 		float red = (gl_FragCoord.x > xCoord - 4.0 && gl_FragCoord.x < xCoord + 4.0) ? 1.0 : 0.0;
 		float green = (gl_FragCoord.y > yCoord - 4.0 && gl_FragCoord.y < yCoord + 4.0) ? 1.0 : 0.0;
