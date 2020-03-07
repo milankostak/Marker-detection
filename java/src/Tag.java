@@ -25,7 +25,8 @@ public class Tag extends Application {
 
     private static final String BASE_PATH = "..\\python\\";
     private static final String FILE = "test.txt";
-    private static final int WIDTH = 6;
+    private static final String RESULT_FILE = "results.txt";
+    private static final int WIDTH_HEIGHT = 6;
     private static final int HALF_WIDTH = 3;
 
     private Stage stage;
@@ -34,6 +35,7 @@ public class Tag extends Application {
     private Pane trueRectPane;
 
     private final List<ImageData> imageData = new ArrayList<>();
+    private final List<ImageData> resultData = new ArrayList<>();
     private List<Path> images;
     private int imageOrder = 0;
 
@@ -81,11 +83,10 @@ public class Tag extends Application {
         }
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
     private void handleMouseClicked(MouseEvent mouseEvent) {
         double x = mouseEvent.getX();
         double y = mouseEvent.getY();
-        Rectangle rectangle = new Rectangle(x - HALF_WIDTH, y - HALF_WIDTH, WIDTH, WIDTH);
+        Rectangle rectangle = new Rectangle(x - HALF_WIDTH, y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
         rectangle.setFill(Color.RED);
 
         ObservableList<Node> rectangles = clickRectPane.getChildren();
@@ -110,7 +111,7 @@ public class Tag extends Application {
 
             rectangles.clear();
             trueRectPane.getChildren().clear();
-            trueRectPane.getChildren().add(new Rectangle(cx, cy, WIDTH, WIDTH));
+            trueRectPane.getChildren().add(new Rectangle(cx, cy, WIDTH_HEIGHT, WIDTH_HEIGHT));
 
             Optional<ImageData> imageDataOptional = imageData.stream()
                     .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
@@ -126,15 +127,20 @@ public class Tag extends Application {
     }
 
     private void loadData() {
-        String file = FileUtils.readFile(BASE_PATH + FILE);
-        if (file.isEmpty()) return;
-        String[] lines = file.split(System.lineSeparator());
+        loadData2(imageData, FILE);
+        loadData2(resultData, RESULT_FILE);
+    }
+
+    private void loadData2(List<ImageData> data, String filename) {
+        String content = FileUtils.readFile(BASE_PATH + filename);
+        if (content.isEmpty()) return;
+        String[] lines = content.split(System.lineSeparator());
         for (String s : lines) {
             String[] split = s.split(",");
             if (split.length != 3) continue;
-            int x = Integer.parseInt(split[1]);
-            int y = Integer.parseInt(split[2]);
-            imageData.add(new ImageData(split[0], x, y));
+            int x = (int) Math.round(Double.parseDouble(split[1]));
+            int y = (int) Math.round(Double.parseDouble(split[2]));
+            data.add(new ImageData(split[0], x, y));
         }
     }
 
@@ -160,9 +166,20 @@ public class Tag extends Application {
                 .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
                 .findFirst();
 
+        Optional<ImageData> imageResultDataOptional = resultData.stream()
+                .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
+                .findFirst();
+
         if (imageDataOptional.isPresent()) {
             ImageData id = imageDataOptional.get();
-            trueRectPane.getChildren().add(new Rectangle(id.x - 3, id.y - 3, 6, 6));
+            trueRectPane.getChildren().add(new Rectangle(id.x - HALF_WIDTH, id.y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT));
+        }
+
+        if (imageResultDataOptional.isPresent()) {
+            ImageData id = imageResultDataOptional.get();
+            Rectangle rectangle = new Rectangle(id.x - HALF_WIDTH, id.y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
+            rectangle.setFill(Color.YELLOW);
+            trueRectPane.getChildren().add(rectangle);
         }
 
         stage.setTitle(images.get(imageOrder).getFileName().toString());
