@@ -16,6 +16,8 @@
 	// also, it is used to make sure that animation is running only once
 	let isDetecting = false;
 
+	const TEST = false;
+
 	window.onload = function() {
 		let initResult = Detection.init();
 
@@ -41,7 +43,7 @@
 		// get access to camera
 		navigator.mediaDevices.getUserMedia({
 			audio: false,
-			video: { width: 1280, height: 720, facingMode: "environment" }
+			video: {width: 1280, height: 720, facingMode: "environment"}
 			/*video: {
 				width: { min: 720, ideal: 1024, max: 1280 },
 				height: { min: 540, max: 720 },
@@ -75,6 +77,21 @@
 		window.requestAnimationFrame(animate);
 	}
 
+	function test(start, end) {
+		for (let i = start; i <= end; i++) {
+			const name = String(i).padStart(3, "0");
+			const img = new Image();
+			img.onload = () => {
+				Detection.setupAfterVideoStreamIsReady(img.width, img.height);
+				Detection.updateTexture(img);
+				Detection.repaint(true);
+				const readData = Detection.getReadBuffer2();
+				console.log(name + ".jpg," + readData[0] + "," + (img.height - readData[4]));
+			};
+			img.src = "/python/" + name + ".jpg";
+		}
+	}
+
 	/**
 	 * Event handler when camera is ready to give pictures
 	 */
@@ -85,7 +102,11 @@
 		document.querySelector(".loading-container").classList.add("hidden");
 		document.querySelector(".main").classList.remove("hidden");
 
-		window.requestAnimationFrame(animate);
+		if (!TEST) {
+			window.requestAnimationFrame(animate);
+		} else {
+			test(0, 150);
+		}
 	}
 
 	/**

@@ -530,6 +530,10 @@ const Detection = (function() {
 		if (MEASURE_TIME) window.performance.mark("a");
 	}
 
+	Detection.getReadBuffer2 = () => {
+		return readBuffer2;
+	};
+
 	/**
 	 * Update cameraTexture from video feed
 	 * @public
