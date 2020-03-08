@@ -44,6 +44,27 @@ float getPixelWeight(vec2 texCoords) {
     }
 }
 
+float readNeighborPixels(vec2 texCoords) {
+    float s = texCoords.s;
+    float t = texCoords.t;
+
+    float values[8];
+    values[0] = getPixelWeight(vec2(s - 1.0 / width, t - 1.0 / height));// topLeft
+    values[1] = getPixelWeight(vec2(s, t - 1.0 / height));// topMiddle
+    values[2] = getPixelWeight(vec2(s + 1.0 / width, t - 1.0 / height));// topRight
+    values[3] = getPixelWeight(vec2(s - 1.0 / width, t));// middleLeft
+    values[4] = getPixelWeight(vec2(s + 1.0 / width, t));// middleRight
+    values[5] = getPixelWeight(vec2(s - 1.0 / width, t + 1.0 / height));// bottomLeft
+    values[6] = getPixelWeight(vec2(s, t + 1.0 / height));// bottomMiddle
+    values[7] = getPixelWeight(vec2(s + 1.0 / width, t + 1.0 / height));// bottomRight
+
+    float sum = 0.0;
+    for (int i = 0; i < 8; i++) {
+        if (values[i] != 0.0) sum += values[i];
+    }
+    return sum;
+}
+
 void main(void) {
     float sum = 0.0;
     // rows are written in the second row (for each row there are 1280 pixels)
@@ -52,22 +73,12 @@ void main(void) {
             if (i > width) break;
             if (gl_FragCoord.x / height >= 1.0) discard;
 
-            // one pixel to the top
-            vec2 texCoordsNeighbor1 = vec2(i / width, (gl_FragCoord.x - 1.0) / height);
-            float weightN1 = getPixelWeight(texCoordsNeighbor1);
-
-            // one pixel to the bottom
-            vec2 texCoordsNeighbor2 = vec2(i / width, (gl_FragCoord.x + 1.0) / height);
-            float weightN2 = getPixelWeight(texCoordsNeighbor2);
-
             vec2 texCoords = vec2(i / width, gl_FragCoord.x / height);
             float weight = getPixelWeight(texCoords);
 
-            float finalWeight;
-            if (weightN1 == 0.0 && weightN2 == 0.0) {
-                finalWeight = 0.0;// ignore solitary pixels
-            } else {
-                finalWeight = (weightN1 + weightN2 + weight) / 3.0;
+            // do closing operation
+            if (weight == 0.0) {
+                weight = readNeighborPixels(texCoords);
             }
 
             sum += finalWeight;
@@ -78,25 +89,15 @@ void main(void) {
             if (i > height) break;
             if (gl_FragCoord.x / width >= 1.0) discard;
 
-            // one pixel to the left
-            vec2 texCoordsNeighbor1 = vec2((gl_FragCoord.x - 1.0) / width, i / height);
-            float weightN1 = getPixelWeight(texCoordsNeighbor1);
-
-            // one pixel to the right
-            vec2 texCoordsNeighbor2 = vec2((gl_FragCoord.x + 1.0) / width, i / height);
-            float weightN2 = getPixelWeight(texCoordsNeighbor2);
-
             vec2 texCoords = vec2(gl_FragCoord.x / width, i / height);
             float weight = getPixelWeight(texCoords);
 
-            float finalWeight;
-            if (weightN1 == 0.0 && weightN2 == 0.0) {
-                finalWeight = 0.0;// ignore solitary pixels
-            } else {
-                finalWeight = (weightN1 + weightN2 + weight) / 3.0;
+            // do closing operation
+            if (weight == 0.0) {
+                weight = readNeighborPixels(texCoords);
             }
 
-            sum += finalWeight;
+            sum += weight;
         }
     } else {
         discard;
