@@ -19,7 +19,7 @@ const serveStatic = require('serve-static');
 
 // const fs = require('fs');
 // const https = require('https');
-// const privateKey  = fs.readFileSync('key2.key', 'utf8');
+// const privateKey  = fs.readFileSync('key.key', 'utf8');
 // const certificate = fs.readFileSync('cert.crt', 'utf8');
 // const credentials = {key: privateKey, cert: certificate};
 

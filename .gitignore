@@ -3,3 +3,7 @@
 npm-debug.log
 package-lock.json
 /webgl
+key.key
+cert.crt
+/python/*.jpg
+/python/*.mp4
