@@ -10,6 +10,7 @@ uniform sampler2D coordTexture;
 void main(void) {
 	vec4 cameraColor = texture2D(texture, vec2(gl_FragCoord.x / width, gl_FragCoord.y / height));
 	if (drawSquare == 0.0) {
+		// draw two lines to point detected marker
 		float xCoord = texture2D(coordTexture, vec2(0.5, 0.25)).r;
 		float yCoord = texture2D(coordTexture, vec2(0.5, 0.75)).r;
 //		gl_FragColor = vec4(xCoord, yCoord, 0, 1);
@@ -20,6 +21,7 @@ void main(void) {
 		if ((red > 0.0 || green > 0.0) && xCoord > 0.0 && yCoord > 0.0) gl_FragColor = vec4(red, green, 0, 1);
 		else gl_FragColor = cameraColor;
 	} else {
+		// draw square that is used to show marker for color detection
 		float rect = 100.0;
 		float rectW = 3.0;
 		float leftX = width / 2.0 - rect / 2.0;

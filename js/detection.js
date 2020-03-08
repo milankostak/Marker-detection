@@ -667,10 +667,6 @@ const Detection = (() => {
 		detectedColor = false;
 	};
 
-	Detection.finish = function() {
-
-	};
-
 	// export Detection object
 	return Detection;
 })();

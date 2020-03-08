@@ -81,10 +81,11 @@ void main(void) {
                 weight = readNeighborPixels(texCoords);
             }
 
-            sum += finalWeight;
+            sum += weight;
         }
-        // columns are written to first row (for each column there are 720 pixels)
-    } else if (int(gl_FragCoord.y) == 0) {
+    }
+    // columns are written to first row (for each column there are 720 pixels)
+    else if (int(gl_FragCoord.y) == 0) {
         for (float i = 0.5; i <= 720.5; i++) {
             if (i > height) break;
             if (gl_FragCoord.x / width >= 1.0) discard;
@@ -103,6 +104,6 @@ void main(void) {
         discard;
     }
 
-    // save count (in the row or column); save weight - sum  * coord (used later)
+    // save count (in the row or column); save coordinate that is later used to calculate weighted mean
     gl_FragColor = vec4(sum, gl_FragCoord.x + 0.5, 0, 0);
 }
