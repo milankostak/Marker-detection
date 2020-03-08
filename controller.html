@@ -79,6 +79,7 @@
 	}
 
 	function test(start, end) {
+		Detection.setExternalColor([120, 0.32, 0.58], [0, 0, 0]);
 		for (let i = start; i <= end; i++) {
 			const name = String(i).padStart(3, "0");
 			const img = new Image();

@@ -648,7 +648,22 @@ const Detection = (() => {
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
 	};
 
-	Detection.restart = function() {
+	/**
+	 * Set external color, usually for testing purpose.
+	 * Uncomment readData2() !!
+	 * @param mean array with 3 values
+	 * @param variance array with 3 values
+	 */
+	Detection.setExternalColor = (mean, variance) => {
+		targetColor = Float32Array.from(mean);
+		targetVariance = Float32Array.from(variance);
+		detectedColor = true;
+	};
+
+	/**
+	 * Restart of detection
+	 */
+	Detection.restart = () => {
 		detectedColor = false;
 	};
 
