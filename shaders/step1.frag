@@ -44,25 +44,44 @@ float getPixelWeight(vec2 texCoords) {
     }
 }
 
-float readNeighborPixels(vec2 texCoords) {
+void readNeighborPixels(vec2 texCoords, inout float weights[8]) {
     float s = texCoords.s;
     float t = texCoords.t;
 
-    float values[8];
-    values[0] = getPixelWeight(vec2(s - 1.0 / width, t - 1.0 / height));// topLeft
-    values[1] = getPixelWeight(vec2(s, t - 1.0 / height));// topMiddle
-    values[2] = getPixelWeight(vec2(s + 1.0 / width, t - 1.0 / height));// topRight
-    values[3] = getPixelWeight(vec2(s - 1.0 / width, t));// middleLeft
-    values[4] = getPixelWeight(vec2(s + 1.0 / width, t));// middleRight
-    values[5] = getPixelWeight(vec2(s - 1.0 / width, t + 1.0 / height));// bottomLeft
-    values[6] = getPixelWeight(vec2(s, t + 1.0 / height));// bottomMiddle
-    values[7] = getPixelWeight(vec2(s + 1.0 / width, t + 1.0 / height));// bottomRight
+    weights[0] = getPixelWeight(vec2(s - 1.0 / width, t - 1.0 / height));// topLeft
+    weights[1] = getPixelWeight(vec2(s, t - 1.0 / height));// topMiddle
+    weights[2] = getPixelWeight(vec2(s + 1.0 / width, t - 1.0 / height));// topRight
+    weights[3] = getPixelWeight(vec2(s - 1.0 / width, t));// middleLeft
+    weights[4] = getPixelWeight(vec2(s + 1.0 / width, t));// middleRight
+    weights[5] = getPixelWeight(vec2(s - 1.0 / width, t + 1.0 / height));// bottomLeft
+    weights[6] = getPixelWeight(vec2(s, t + 1.0 / height));// bottomMiddle
+    weights[7] = getPixelWeight(vec2(s + 1.0 / width, t + 1.0 / height));// bottomRight
+}
 
+float closing(vec2 texCoords) {
+    float weights[8];
+    readNeighborPixels(texCoords, weights);
     float sum = 0.0;
+    float count = 0.0;
     for (int i = 0; i < 8; i++) {
-        if (values[i] != 0.0) sum += values[i];
+        if (weights[i] != 0.0) {
+            sum += weights[i];
+            count++;
+        }
     }
-    return sum;
+    return count == 0.0 ? 0.0 : sum / count;
+}
+
+float opening(vec2 texCoords) {
+    float weights[8];
+    readNeighborPixels(texCoords, weights);
+    float count = 0.0;
+    for (int i = 0; i < 8; i++) {
+        if (weights[i] != 0.0) {
+            count++;
+        }
+    }
+    return count;
 }
 
 void main(void) {
@@ -78,7 +97,12 @@ void main(void) {
 
             // do closing operation
             if (weight == 0.0) {
-                weight = readNeighborPixels(texCoords);
+                weight = closing(texCoords);
+            }
+            // do opening operation
+            if (weight != 0.0) {
+                float count = opening(texCoords);
+                if (count == 0.0) weight = 0.0;
             }
 
             sum += weight;
@@ -95,7 +119,12 @@ void main(void) {
 
             // do closing operation
             if (weight == 0.0) {
-                weight = readNeighborPixels(texCoords);
+                weight = closing(texCoords);
+            }
+            // do opening operation
+            if (weight != 0.0) {
+                float count = opening(texCoords);
+                if (count == 0.0) weight = 0.0;
             }
 
             sum += weight;
