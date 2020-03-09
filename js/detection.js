@@ -41,7 +41,7 @@ const Detection = (() => {
 	// color has to be detected before marker detection can be executed
 	let detectedColor = false;
 	// Float32Array, color that is supposed to be detected with its variance
-	let targetColor, targetVariance;
+	let targetHue, targetSaturation, targetValue;
 	// Float32Array
 	let readBuffer, readBuffer2, readBufferColor;
 	// time measurement variables
@@ -163,8 +163,9 @@ const Detection = (() => {
 		program3.texture = gl.getUniformLocation(program3, "texture");
 		program3.width = gl.getUniformLocation(program3, "width");
 		program3.height = gl.getUniformLocation(program3, "height");
-		program3.targetColor = gl.getUniformLocation(program3, "targetColor");
-		program3.targetVariance = gl.getUniformLocation(program3, "targetVariance");
+		program3.targetHue = gl.getUniformLocation(program3, "targetHue");
+		program3.targetSaturation = gl.getUniformLocation(program3, "targetSaturation");
+		program3.targetValue = gl.getUniformLocation(program3, "targetValue");
 
 
 		program4 = gl.createProgram();
@@ -332,8 +333,9 @@ const Detection = (() => {
 		// noinspection JSSuspiciousNameCombination
 		gl.uniform1f(program3.height, height);
 
-		gl.uniform3fv(program3.targetColor, targetColor);
-		gl.uniform3fv(program3.targetVariance, targetVariance);
+		gl.uniform1f(program3.targetHue, targetHue[0]);
+		gl.uniform2fv(program3.targetSaturation, targetSaturation);
+		gl.uniform2fv(program3.targetValue, targetValue);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
 		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
@@ -479,65 +481,75 @@ const Detection = (() => {
 		gl.readPixels(0, 0, 10, 10, gl.RGBA, gl.FLOAT, readBufferColor);
 		// console.log(readBufferColor);
 
-		const sum = [0, 0, 0];
-		const min = [readBufferColor[0], readBufferColor[1], readBufferColor[2]];
-		const max = [readBufferColor[0], readBufferColor[1], readBufferColor[2]];
-		for (let i = 0; i < 400; i += 4) {
-			for (let j = 0; j < 3; j++) {
-				let value = readBufferColor[i + j];
-				if (value > max[j]) max[j] = value;
-				if (value < max[j]) max[j] = value;
-				sum[j] += value;
-			}
+		// let stringH = "";
+		// let stringS = "";
+		// let stringV = "";
+		// for (let i = 0; i < 400; i += 4) {
+		// 	stringH += Utils.replaceDecimalPoint(readBufferColor[i]) + "\t";
+		// 	stringS += Utils.replaceDecimalPoint(readBufferColor[i + 1]) + "\t";
+		// 	stringV += Utils.replaceDecimalPoint(readBufferColor[i + 2]) + "\t";
+		// }
+		// console.log(stringH);
+		// console.log(stringS);
+		// console.log(stringV);
+
+		// 1. read data
+		let hue = new Float32Array(100);
+		let saturation = new Float32Array(100);
+		let value = new Float32Array(100);
+		for (let i = 0, j = 0; i < 400; i += 4, j++) {
+			hue[j] = readBufferColor[i];
+			saturation[j] = readBufferColor[i + 1];
+			value[j] = readBufferColor[i + 2];
 		}
 
-		// subtract extreme values
-		for (let j = 0; j < 3; j++) {
-			sum[j] -= min[j];
-			sum[j] -= max[j];
-			sum[j] /= 98;
+		// 2.process hue
+		// https://en.wikipedia.org/wiki/Mean_of_circular_quantities
+		let sumSin = 0;
+		let sumCos = 0;
+		hue.forEach(val => {
+			sumSin += Math.sin(toRadians(val));
+			sumCos += Math.cos(toRadians(val));
+		});
+		let atan = toDegrees(Math.atan2(sumSin / hue.length, sumCos / hue.length));
+		if (atan < 0) atan += 180;
+		targetHue = Float32Array.from([atan]);
+
+		// 3. process saturation and value
+		// sort, ignore 10 lowest and 10 highest
+		saturation = saturation.sort();
+		value = value.sort();
+		targetSaturation = Float32Array.from([saturation[10], saturation[89]]);
+		targetValue = Float32Array.from([value[10], value[89]]);
+
+		// 4. manage saturation, force at least 0.1 space between max and min
+		const satDiff = targetSaturation[1] - targetSaturation[0];
+		if (satDiff < 0.1) {
+			const add = 0.1 - satDiff / 2;
+			targetSaturation[1] += add;
+			targetSaturation[0] -= add;
 		}
-		const meanHue = sum[0];
-		const meanSaturation = sum[1];
-		const meanValue = sum[2];
-		console.log(meanHue, meanSaturation, meanValue);
-
-		// calculate variance
-		const sumOfDiffs = [0, 0, 0];
-		const mean = [meanHue, meanSaturation, meanValue];
-		for (let i = 0; i < 400; i += 4) {
-			for (let j = 0; j < 3; j++) {
-				let value = readBufferColor[i + j];
-				sumOfDiffs[j] += Math.pow(value - mean[j], 2);
-			}
+		// 5. manage value, force at least 0.1 space between max and min
+		const valDiff = targetValue[1] - targetValue[0];
+		if (valDiff < 0.1) {
+			const add = 0.1 - valDiff / 2;
+			targetValue[1] += add;
+			targetValue[0] -= add;
 		}
-		// subtract extreme values
-		for (let j = 0; j < 3; j++) {
-			sumOfDiffs[j] -= Math.pow(max[j] - mean[j], 2);
-			sumOfDiffs[j] -= Math.pow(min[j] - mean[j], 2);
-			sumOfDiffs[j] /= 98;
-			// sumOfDiffs[j] = Math.sqrt(sumOfDiffs[j]);
-		}
-		const varianceHue = sumOfDiffs[0];
-		const varianceSaturation = sumOfDiffs[1];
-		const varianceValue = sumOfDiffs[2];
-		console.log(varianceHue, varianceSaturation, varianceValue);
 
-		if (meanHue !== 0) {
-			detectedColor = true;
-			targetColor = Float32Array.from(mean);
-			targetVariance = Float32Array.from([varianceHue, varianceSaturation, varianceValue]);
+		detectedColor = true;
 
-			const hsv = [meanHue, meanSaturation * 100, meanValue * 100];
-			const hsl = hsvToHsl(hsv);
+		// 6. print/debug
+		const hsv = [targetHue[0], saturation[50] * 100, value[50] * 100];
+		console.log(hsv);
+		const hsl = hsvToHsl(hsv);
 
-			const stringCssHsl = "hsl(" + Math.round(hsl[0]) + ", " + Math.round(hsl[1]) + "%, " + Math.round(hsl[2]) + "%)";
-			const stringHsv = "HSV " + Math.round(hsv[0]) + ", " + Math.round(hsv[1]) + "%, " + Math.round(hsv[2])  + "%";
+		const stringCssHsl = "hsl(" + Math.round(hsl[0]) + ", " + Math.round(hsl[1]) + "%, " + Math.round(hsl[2]) + "%)";
+		const stringHsv = "HSV " + Math.round(hsv[0]) + ", " + Math.round(hsv[1]) + "%, " + Math.round(hsv[2]) + "%";
 
-			document.querySelector("#color").style.backgroundColor = stringCssHsl;
-			document.querySelector("#color_text").textContent = stringHsv;
-			document.querySelector("label#reset").classList.remove("hidden");
-		}
+		document.querySelector("#color").style.backgroundColor = stringCssHsl;
+		document.querySelector("#color_text").textContent = stringHsv;
+		document.querySelector("label#reset").classList.remove("hidden");
 	}
 
 	/**
@@ -633,6 +645,24 @@ const Detection = (() => {
 		if (MEASURE_TIME) window.performance.mark("a");
 	}
 
+	/**
+	 * Convert number in degrees to radians
+	 * @param  {number} degrees number in degrees
+	 * @return {number}         number in radians
+	 */
+	function toRadians(degrees) {
+		return degrees * Math.PI / 180;
+	}
+
+	/**
+	 * Convert number in radians to degrees
+	 * @param  {number} radians number in radians
+	 * @return {number}         number in degrees
+	 */
+	function toDegrees(radians) {
+		return radians / Math.PI * 180;
+	}
+
 	Detection.getReadBuffer2 = () => {
 		return readBuffer2;
 	};
@@ -655,12 +685,14 @@ const Detection = (() => {
 	/**
 	 * Set external color, usually for testing purpose.
 	 * Uncomment readData2() !!
-	 * @param mean array with 3 values
-	 * @param variance array with 3 values
+	 * @param {number}     hue
+	 * @param {(number)[]} saturation array with 2 values
+	 * @param {(number)[]} value array with 2 values
 	 */
-	Detection.setExternalColor = (mean, variance) => {
-		targetColor = Float32Array.from(mean);
-		targetVariance = Float32Array.from(variance);
+	Detection.setExternalColor = (hue, saturation, value) => {
+		targetHue = Float32Array.from([hue]);
+		targetSaturation = Float32Array.from(saturation);
+		targetValue = Float32Array.from(value);
 		detectedColor = true;
 	};
 
