@@ -38,7 +38,7 @@ float getPixelWeight(vec2 texCoords) {
     bool saturationInRange = hsv.y > targetColor.y - 0.1 && hsv.y < targetColor.y + 0.1;
     bool valueInRange = hsv.z > targetColor.z - 0.1 && hsv.z < targetColor.z + 0.1;
     if (hueInRange && saturationInRange && valueInRange) {
-        return distanceInHsv(targetColor, hsv);;
+        return distanceInHsv(targetColor, hsv);
     } else {
         return 0.0;
     }
@@ -75,13 +75,13 @@ float closing(vec2 texCoords) {
 float opening(vec2 texCoords) {
     float weights[8];
     readNeighborPixels(texCoords, weights);
-    float count = 0.0;
+    float sum = 0.0;
     for (int i = 0; i < 8; i++) {
         if (weights[i] != 0.0) {
-            count++;
+            sum += weights[i];
         }
     }
-    return count;
+    return sum;
 }
 
 void main(void) {
@@ -101,8 +101,8 @@ void main(void) {
             }
             // do opening operation
             if (weight != 0.0) {
-                float count = opening(texCoords);
-                if (count == 0.0) weight = 0.0;
+                float sum = opening(texCoords);
+                if (sum < 1.0) weight = 0.0;
             }
 
             sum += weight;
@@ -123,8 +123,8 @@ void main(void) {
             }
             // do opening operation
             if (weight != 0.0) {
-                float count = opening(texCoords);
-                if (count == 0.0) weight = 0.0;
+                float sum = opening(texCoords);
+                if (sum < 1.0) weight = 0.0;
             }
 
             sum += weight;
