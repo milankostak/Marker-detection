@@ -528,10 +528,14 @@ const Detection = (() => {
 			targetColor = Float32Array.from(mean);
 			targetVariance = Float32Array.from([varianceHue, varianceSaturation, varianceValue]);
 
-			const hsl = hsvToHsl([meanHue, meanSaturation * 100, meanValue * 100]);
-			const string = "hsl(" + Math.round(hsl[0]) + ", " + Math.round(hsl[1]) + "%, " + Math.round(hsl[2]) + "%)";
-			document.querySelector("#color").style.backgroundColor = string;
-			document.querySelector("#color_text").textContent = string;
+			const hsv = [meanHue, meanSaturation * 100, meanValue * 100];
+			const hsl = hsvToHsl(hsv);
+
+			const stringCssHsl = "hsl(" + Math.round(hsl[0]) + ", " + Math.round(hsl[1]) + "%, " + Math.round(hsl[2]) + "%)";
+			const stringHsv = "HSV " + Math.round(hsv[0]) + ", " + Math.round(hsv[1]) + "%, " + Math.round(hsv[2])  + "%";
+
+			document.querySelector("#color").style.backgroundColor = stringCssHsl;
+			document.querySelector("#color_text").textContent = stringHsv;
 			document.querySelector("label#reset").classList.remove("hidden");
 		}
 	}
