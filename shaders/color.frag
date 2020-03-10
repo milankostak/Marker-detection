@@ -4,6 +4,8 @@ uniform sampler2D texture;
 uniform float width;
 uniform float height;
 
+const float rect = 100.0;
+
 // https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl
 // https://en.wikipedia.org/wiki/HSL_and_HSV
 vec3 rgb2hsv(vec3 c) {
@@ -20,12 +22,11 @@ vec3 rgb2hsv(vec3 c) {
 }
 
 void main(void) {
-    float rect = 100.0;
     float leftX = width / 2.0 - rect / 2.0;
     float topY = height / 2.0 - rect / 2.0;
 
-    float x = leftX + gl_FragCoord.x * 10.0;
-    float y = topY + gl_FragCoord.y * 10.0;
+    float x = leftX + gl_FragCoord.x * (rect / 10.0);
+    float y = topY + gl_FragCoord.y * (rect / 10.0);
     float r = 0.0, g = 0.0, b = 0.0;
 
     for (float i = 0.0; i < 10.0; i++) {
@@ -37,7 +38,7 @@ void main(void) {
         }
     }
 
-    vec3 rgb = vec3(r / 100.0, g / 100.0, b / 100.0);
+    vec3 rgb = vec3(r / rect, g / rect, b / rect);
     vec3 hsv = rgb2hsv(rgb);
     gl_FragColor = vec4(hsv, 1.0);
 }
