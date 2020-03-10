@@ -127,20 +127,29 @@ public class Tag extends Application {
     }
 
     private void loadData() {
-        loadData2(imageData, FILE);
-        loadData2(resultData, RESULT_FILE);
+        loadData2(imageData, FILE, false);
+        loadData2(resultData, RESULT_FILE, true);
     }
 
-    private void loadData2(List<ImageData> data, String filename) {
+    private void loadData2(List<ImageData> data, String filename, boolean result) {
+        int length = result ? 3 : 6;
+
         String content = FileUtils.readFile(BASE_PATH + filename);
         if (content.isEmpty()) return;
         String[] lines = content.split(System.lineSeparator());
         for (String s : lines) {
             String[] split = s.split(",");
-            if (split.length != 3) continue;
+            if (split.length != length) continue;
             int x = (int) Math.round(Double.parseDouble(split[1]));
             int y = (int) Math.round(Double.parseDouble(split[2]));
-            data.add(new ImageData(split[0], x, y));
+            if (!result) {
+                int h = Integer.parseInt(split[3]);
+                int sat = Integer.parseInt(split[4]);
+                int v = Integer.parseInt(split[5]);
+                data.add(new ImageData(split[0], x, y, h, sat, v));
+            } else {
+                data.add(new ImageData(split[0], x, y));
+            }
         }
     }
 
