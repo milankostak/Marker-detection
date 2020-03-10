@@ -57,7 +57,7 @@ void readNeighborPixels(vec2 texCoords, inout float weights[8]) {
     weights[7] = getPixelWeight(vec2(s + 1.0 / width, t + 1.0 / height));// bottomRight
 }
 
-float closing(vec2 texCoords) {
+float dilatation(vec2 texCoords) {
     float weights[8];
     readNeighborPixels(texCoords, weights);
     float sum = 0.0;
@@ -71,7 +71,7 @@ float closing(vec2 texCoords) {
     return count == 0.0 ? 0.0 : sum / count;
 }
 
-float opening(vec2 texCoords) {
+float erosion(vec2 texCoords) {
     float weights[8];
     readNeighborPixels(texCoords, weights);
     float sum = 0.0;
@@ -94,15 +94,15 @@ void main(void) {
             vec2 texCoords = vec2(i / width, gl_FragCoord.x / height);
             float weight = getPixelWeight(texCoords);
 
-            // do closing operation
-            if (weight == 0.0) {
-                weight = closing(texCoords);
-            }
-            // do opening operation
-            if (weight != 0.0) {
-                float sum = opening(texCoords);
-                if (sum < 1.0) weight = 0.0;
-            }
+//            // do dilatation operation
+//            if (weight == 0.0) {
+//                weight = dilatation(texCoords);
+//            }
+//            // do erosion operation
+//            if (weight != 0.0) {
+//                float sum = erosion(texCoords);
+//                if (sum < 1.0) weight = 0.0;
+//            }
 
             sum += weight;
         }
@@ -116,15 +116,15 @@ void main(void) {
             vec2 texCoords = vec2(gl_FragCoord.x / width, i / height);
             float weight = getPixelWeight(texCoords);
 
-            // do closing operation
-            if (weight == 0.0) {
-                weight = closing(texCoords);
-            }
-            // do opening operation
-            if (weight != 0.0) {
-                float sum = opening(texCoords);
-                if (sum < 1.0) weight = 0.0;
-            }
+//            // do dilatation operation
+//            if (weight == 0.0) {
+//                weight = dilatation(texCoords);
+//            }
+//            // do erosion operation
+//            if (weight != 0.0) {
+//                float sum = erosion(texCoords);
+//                if (sum < 1.0) weight = 0.0;
+//            }
 
             sum += weight;
         }
