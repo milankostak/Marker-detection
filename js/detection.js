@@ -511,8 +511,9 @@ const Detection = (() => {
 			sumSin += Math.sin(toRadians(val));
 			sumCos += Math.cos(toRadians(val));
 		});
-		let atan = toDegrees(Math.atan2(sumSin / hue.length, sumCos / hue.length));
-		if (atan < 0) atan += 180;
+		// https://en.wikipedia.org/wiki/Talk%3AMean_of_circular_quantities#Don't_need_to_divide_by_n
+		let atan = toDegrees(Math.atan2(sumSin, sumCos));
+		if (atan < 0) atan += 360;
 		targetHue = Float32Array.from([atan]);
 
 		// 3. process saturation and value
@@ -555,6 +556,8 @@ const Detection = (() => {
 	/**
 	 * Converts HSV to HSL color model.
 	 * https://stackoverflow.com/questions/3423214/convert-hsb-hsv-color-to-hsl/17668371#17668371
+	 * @param {(number)[]} hsv three values array
+	 * @returns {(number)[]}
 	 */
 	function hsvToHsl(hsv) {
 		// determine the lightness in the range [0, 100]
