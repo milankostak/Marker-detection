@@ -3,11 +3,11 @@ precision highp float;
 uniform sampler2D texture;
 uniform float width;
 uniform float height;
+uniform float targetHue;
 
 const float hueThreshold = 20.0;
-uniform float targetHue;
-uniform vec2 targetSaturation;
-uniform vec2 targetValue;
+const float svThreshold = 0.35;
+const float erosionThreshold = 6.5;
 
 // https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl
 // https://en.wikipedia.org/wiki/HSL_and_HSV
@@ -24,8 +24,8 @@ vec3 rgb2hsv(vec3 c) {
     return vec3(hsv.x * 360.0, hsv.yz);
 }
 
-float distanceInHsv(float targetHue, float currentHue) {
-    float diff = abs(targetHue - currentHue);
+float distanceInHsv(float fixedTargetHue, float fixedCurrentHue) {
+    float diff = abs(fixedTargetHue - fixedCurrentHue);
     float weight = pow((hueThreshold - diff) / hueThreshold, 0.5);
     return weight;// in range <0;1>
 }
@@ -33,11 +33,16 @@ float distanceInHsv(float targetHue, float currentHue) {
 float getPixelWeight(vec2 texCoords) {
     vec4 pixel = texture2D(texture, texCoords);
     vec3 hsv = rgb2hsv(pixel.rgb);
-    bool hueInRange = hsv.x > targetHue - hueThreshold && hsv.x < targetHue + hueThreshold;
-    bool saturationInRange = hsv.y > targetSaturation[0] && hsv.y < targetSaturation[1];
-    bool valueInRange = hsv.z > targetValue[0]  && hsv.z < targetValue[1];
-    if (hueInRange && saturationInRange && valueInRange) {
-        return distanceInHsv(targetHue, hsv.x);
+
+    // fix circular hue
+    float fixedCurrentHue = hsv.x;
+    float fixedTargetHue = targetHue;
+    if (fixedTargetHue + hueThreshold > 360.0 && fixedCurrentHue < hueThreshold) fixedCurrentHue += 360.0;
+    if (fixedTargetHue < hueThreshold && fixedCurrentHue + hueThreshold > 360.0) fixedTargetHue += 360.0;
+
+    bool hueInRange = fixedCurrentHue > fixedTargetHue - hueThreshold && fixedCurrentHue < fixedTargetHue + hueThreshold;
+    if (hueInRange && hsv.y > svThreshold && hsv.z > svThreshold) {
+        return distanceInHsv(fixedTargetHue, fixedCurrentHue);
     } else {
         return 0.0;
     }
@@ -76,9 +81,7 @@ float erosion(vec2 texCoords) {
     readNeighborPixels(texCoords, weights);
     float sum = 0.0;
     for (int i = 0; i < 8; i++) {
-        if (weights[i] != 0.0) {
-            sum += weights[i];
-        }
+        sum += weights[i];
     }
     return sum;
 }
@@ -98,11 +101,11 @@ void main(void) {
 //            if (weight == 0.0) {
 //                weight = dilatation(texCoords);
 //            }
-//            // do erosion operation
-//            if (weight != 0.0) {
-//                float sum = erosion(texCoords);
-//                if (sum < 1.0) weight = 0.0;
-//            }
+            // do erosion operation
+            if (weight != 0.0) {
+                float sumE = erosion(texCoords);
+                if (sumE < erosionThreshold) weight = 0.0;
+            }
 
             sum += weight;
         }
@@ -120,11 +123,11 @@ void main(void) {
 //            if (weight == 0.0) {
 //                weight = dilatation(texCoords);
 //            }
-//            // do erosion operation
-//            if (weight != 0.0) {
-//                float sum = erosion(texCoords);
-//                if (sum < 1.0) weight = 0.0;
-//            }
+            // do erosion operation
+            if (weight != 0.0) {
+                float sumE = erosion(texCoords);
+                if (sumE < erosionThreshold) weight = 0.0;
+            }
 
             sum += weight;
         }
