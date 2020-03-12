@@ -31,15 +31,22 @@ for i in range(count):
         y2 = float(result_line[2])
 
         distance = pow(pow(x2 - x1, 2) + pow(y2 - y1, 2), 1/2)
-        if distance > 15:
+        if distance > 50:
             false_positive_count += 1
         else:
             distances.append(distance)
 
 print("True positive:", len(distances))
-print(distances)
+# print(distances)
 print("Mean:", statistics.mean(distances))
 print("Median:", statistics.median(distances))
 print("True negative:", true_negative_count)
 print("False positive:", false_positive_count)
 print("False negative:", false_negative_count)
+
+# print(len(distances))
+# print(str(round(statistics.mean(distances), 6)).replace(".", ","))
+# print(str(round(statistics.median(distances), 6)).replace(".", ","))
+# print(true_negative_count)
+# print(false_positive_count)
+# print(false_negative_count)
