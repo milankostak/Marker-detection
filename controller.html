@@ -79,23 +79,44 @@
 	}
 
 	function test(start, end) {
-		Detection.setExternalColor([120, 0.32, 0.58], [0, 0, 0]);
-		for (let i = start; i <= end; i++) {
-			const name = String(i).padStart(3, "0");
-			const img = new Image();
-			img.onload = () => {
-				Detection.setupAfterVideoStreamIsReady(img.width, img.height);
-				Detection.updateTexture(img);
-				Detection.repaint(true);
-				const readData = Detection.getReadBuffer2();
-				if (readData[0] === 0 && readData[4] === 0) {
-					console.log(name + ".jpg,-1,-1");
-				} else {
-					console.log(name + ".jpg," + readData[0] + "," + (img.height - readData[4]));
-				}
-			};
-			img.src = "/python/" + name + ".jpg";
-		}
+		let loaded = 0;
+		const data = [];
+		Utils.getDataFromFile("/python/test.txt", (text) => {
+			const testData = text.split("\r\n")
+					.map(t => t.split(","))
+					.filter(t => t[0] !== "")
+					.map(t => [t[0], t[1] * 1, t[2] * 1, t[3] * 1, t[4] / 100, t[5] / 100])
+					.sort((a, b) => a[0] <= b[0] ? -1 : 1);
+
+			for (let i = start; i <= end; i++) {
+				const name = String(i).padStart(3, "0");
+				const img = new Image();
+				img.onload = () => {
+					const color = testData[i];
+					Detection.setExternalColor(color[3], [color[4] - 0.05, color[4] + 0.05], [color[5] - 0.05, color[5] + 0.05]);
+					Detection.setupAfterVideoStreamIsReady(img.width, img.height);
+					Detection.updateTexture(img);
+					Detection.repaint(true);
+					const readData = Detection.getReadBuffer2();
+					if (readData[0] === 0 && readData[4] === 0) {
+						data.push(name + ".jpg,-1,-1");
+					} else {
+						data.push(name + ".jpg," + readData[0] + "," + (img.height - readData[4]));
+					}
+					loaded++;
+				};
+				img.src = "/python/" + name + ".jpg";
+			}
+		});
+		const total = end + 1;
+		const interval = function() {
+			if (loaded < total) {
+				setTimeout(interval, 50);
+			} else {
+				console.log(data.sort().reduce((a, b) => a + "\n" + b))
+			}
+		};
+		setTimeout(interval, 1);
 	}
 
 	/**
@@ -111,7 +132,7 @@
 		if (!TEST) {
 			window.requestAnimationFrame(animate);
 		} else {
-			test(0, 150);
+			test(0, 139);
 		}
 	}
 
