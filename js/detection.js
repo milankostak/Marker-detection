@@ -9,7 +9,7 @@
  * @requires webgl-utils.js
  * @type {Object}
  * @author Milan Košťák
- * @version 3.0 alpha
+ * @version 3.0
  */
 const Detection = (() => {
 
@@ -40,8 +40,8 @@ const Detection = (() => {
 	let width, height;
 	// color has to be detected before marker detection can be executed
 	let detectedColor = false;
-	// Float32Array, color that is supposed to be detected with its variance
-	let targetHue, targetSaturation, targetValue;
+	// Float32Array, selected color that is supposed
+	let targetHue;
 	// Float32Array
 	let readBuffer, readBuffer2, readBufferColor;
 	// time measurement variables
@@ -164,8 +164,6 @@ const Detection = (() => {
 		program3.width = gl.getUniformLocation(program3, "width");
 		program3.height = gl.getUniformLocation(program3, "height");
 		program3.targetHue = gl.getUniformLocation(program3, "targetHue");
-		program3.targetSaturation = gl.getUniformLocation(program3, "targetSaturation");
-		program3.targetValue = gl.getUniformLocation(program3, "targetValue");
 
 
 		program4 = gl.createProgram();
@@ -334,8 +332,6 @@ const Detection = (() => {
 		gl.uniform1f(program3.height, height);
 
 		gl.uniform1f(program3.targetHue, targetHue[0]);
-		gl.uniform2fv(program3.targetSaturation, targetSaturation);
-		gl.uniform2fv(program3.targetValue, targetValue);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
 		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
@@ -478,23 +474,10 @@ const Detection = (() => {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.drawElements(gl.TRIANGLES, indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 
+		// 1. read data
 		gl.readPixels(0, 0, 10, 10, gl.RGBA, gl.FLOAT, readBufferColor);
 		// console.log(readBufferColor);
-
-		// let stringH = "";
-		// let stringS = "";
-		// let stringV = "";
-		// for (let i = 0; i < 400; i += 4) {
-		// 	stringH += Utils.replaceDecimalPoint(readBufferColor[i]) + "\t";
-		// 	stringS += Utils.replaceDecimalPoint(readBufferColor[i + 1]) + "\t";
-		// 	stringV += Utils.replaceDecimalPoint(readBufferColor[i + 2]) + "\t";
-		// }
-		// console.log(stringH);
-		// console.log(stringS);
-		// console.log(stringV);
-
-		// 1. read data
-		let hue = new Float32Array(100);
+		const hue = new Float32Array(100);
 		let saturation = new Float32Array(100);
 		let value = new Float32Array(100);
 		for (let i = 0, j = 0; i < 400; i += 4, j++) {
@@ -515,32 +498,14 @@ const Detection = (() => {
 		let atan = Utils.toDegrees(Math.atan2(sumSin, sumCos));
 		if (atan < 0) atan += 360;
 		targetHue = Float32Array.from([atan]);
-
-		// 3. process saturation and value
-		// sort, ignore 10 lowest and 10 highest
-		saturation = saturation.sort();
-		value = value.sort();
-		targetSaturation = Float32Array.from([saturation[10], saturation[89]]);
-		targetValue = Float32Array.from([value[10], value[89]]);
-
-		// 4. manage saturation, force at least 0.1 space between max and min
-		const satDiff = targetSaturation[1] - targetSaturation[0];
-		if (satDiff < 0.1) {
-			const add = 0.1 - satDiff / 2;
-			targetSaturation[1] += add;
-			targetSaturation[0] -= add;
-		}
-		// 5. manage value, force at least 0.1 space between max and min
-		const valDiff = targetValue[1] - targetValue[0];
-		if (valDiff < 0.1) {
-			const add = 0.1 - valDiff / 2;
-			targetValue[1] += add;
-			targetValue[0] -= add;
-		}
-
 		detectedColor = true;
 
-		// 6. print/debug
+		// 3. process saturation and value (only to inform user)
+		// sort for median purpose
+		saturation = saturation.sort();
+		value = value.sort();
+
+		// 4. print/debug
 		const hsv = [targetHue[0], saturation[50] * 100, value[50] * 100];
 		console.log(hsv);
 		const hsl = hsvToHsl(hsv);
@@ -670,14 +635,10 @@ const Detection = (() => {
 	/**
 	 * Set external color, usually for testing purpose.
 	 * Uncomment readData2() !!
-	 * @param {number}     hue
-	 * @param {(number)[]} saturation array with 2 values
-	 * @param {(number)[]} value array with 2 values
+	 * @param {number} hue
 	 */
-	Detection.setExternalColor = (hue, saturation, value) => {
+	Detection.setExternalColor = (hue) => {
 		targetHue = Float32Array.from([hue]);
-		targetSaturation = Float32Array.from(saturation);
-		targetValue = Float32Array.from(value);
 		detectedColor = true;
 	};
 

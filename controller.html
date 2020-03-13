@@ -93,7 +93,7 @@
 				const img = new Image();
 				img.onload = () => {
 					const color = testData[i];
-					Detection.setExternalColor(color[3], [color[4] - 0.05, color[4] + 0.05], [color[5] - 0.05, color[5] + 0.05]);
+					Detection.setExternalColor(color[3]);
 					Detection.setupAfterVideoStreamIsReady(img.width, img.height);
 					Detection.updateTexture(img);
 					Detection.repaint(true);
