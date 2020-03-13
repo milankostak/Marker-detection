@@ -508,11 +508,11 @@ const Detection = (() => {
 		let sumSin = 0;
 		let sumCos = 0;
 		hue.forEach(val => {
-			sumSin += Math.sin(toRadians(val));
-			sumCos += Math.cos(toRadians(val));
+			sumSin += Math.sin(Utils.toRadians(val));
+			sumCos += Math.cos(Utils.toRadians(val));
 		});
 		// https://en.wikipedia.org/wiki/Talk%3AMean_of_circular_quantities#Don't_need_to_divide_by_n
-		let atan = toDegrees(Math.atan2(sumSin, sumCos));
+		let atan = Utils.toDegrees(Math.atan2(sumSin, sumCos));
 		if (atan < 0) atan += 360;
 		targetHue = Float32Array.from([atan]);
 
@@ -646,24 +646,6 @@ const Detection = (() => {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
 		// console.log(readBuffer2);
 		if (MEASURE_TIME) window.performance.mark("a");
-	}
-
-	/**
-	 * Convert number in degrees to radians
-	 * @param  {number} degrees number in degrees
-	 * @return {number}         number in radians
-	 */
-	function toRadians(degrees) {
-		return degrees * Math.PI / 180;
-	}
-
-	/**
-	 * Convert number in radians to degrees
-	 * @param  {number} radians number in radians
-	 * @return {number}         number in degrees
-	 */
-	function toDegrees(radians) {
-		return radians / Math.PI * 180;
 	}
 
 	Detection.getReadBuffer2 = () => {
