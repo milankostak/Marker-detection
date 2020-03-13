@@ -9,13 +9,13 @@
     "serve-static": "^1.13.2",
     "ws": "^2.3.1"
   },
-  "description": "Marker detection in the image from camera.",
+  "description": "Single-color marker detection in the image from a camera.",
   "engines": {
     "node": "10.15.3",
     "npm": "6.9.0"
   },
   "main": "server.js",
-  "name": "MarkerDetection",
+  "name": "marker-detection",
   "repository": {
     "type": "git",
     "url": "git://github.com/milankostak/Marker-detection.git"
