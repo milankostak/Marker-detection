@@ -1,10 +1,43 @@
+package common;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
-class ImageUtils {
+public final class ImageUtils {
+
+    /**
+     * Obtain width and height of the image file while not loading the whole file. It is much faster than loading the whole image.
+     *
+     * @param imageFile image
+     * @return Dimensions of width and height; (0,0) if error occurs
+     */
+    public static Dimension getImageDimension(final File imageFile) {
+        // https://stackoverflow.com/questions/1559253/java-imageio-getting-image-dimensions-without-reading-the-entire-file/1560052#1560052
+        try (final ImageInputStream in = ImageIO.createImageInputStream(imageFile)) {
+            final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
+            if (readers.hasNext()) {
+                final ImageReader reader = readers.next();
+                try {
+                    reader.setInput(in);
+                    return new Dimension(reader.getWidth(0), reader.getHeight(0));
+                } finally {
+                    reader.dispose();
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new Dimension(0, 0);
+    }
 
     /**
      * Find an image in active folder by filename
@@ -12,7 +45,7 @@ class ImageUtils {
      * @param filename filename of an image
      * @return Path or null if error occurs
      */
-    static Path findImage(String filename, String path) {
+    public static Path findImage(String filename, String path) {
         try {
             return Files.find(
                     Paths.get(path),
@@ -32,7 +65,7 @@ class ImageUtils {
      *
      * @return Stream<Path> or empty stream if error occurs
      */
-    static Stream<Path> findAllImages(String path) {
+    public static Stream<Path> findAllImages(String path) {
         try {
             return Files.find(
                     Paths.get(path),
@@ -60,6 +93,5 @@ class ImageUtils {
         }
         return false;
     }
-
 
 }

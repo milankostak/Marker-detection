@@ -1,21 +1,19 @@
+package model;
+
 import java.util.StringJoiner;
 
-public class ImageData {
+public class ImageDataCenter extends ImageData {
 
-    String filename;
-    int x, y;
-    private int h, s, v;
+    private final int h, s, v;
 
-    ImageData(String filename, int x, int y, int h, int s, int v) {
-        this.filename = filename;
-        this.x = x;
-        this.y = y;
+    public ImageDataCenter(String filename, int x, int y, int h, int s, int v) {
+        super(filename, x, y);
         this.h = h;
         this.s = s;
         this.v = v;
     }
 
-    ImageData(String s, int x, int y) {
+    public ImageDataCenter(String s, int x, int y) {
         this(s, x, y, -1, -1, -1);
     }
 

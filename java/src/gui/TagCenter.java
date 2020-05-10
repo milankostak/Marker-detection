@@ -1,92 +1,34 @@
+package gui;
+
+import common.FileUtils;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.stage.Stage;
+import model.ImageDataCenter;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class Tag extends Application {
+public class TagCenter extends App {
 
-    private static final String BASE_PATH = "..\\python\\";
+    private final String BASE_PATH = "..\\python\\";
     private static final String FILE = "test.txt";
     private static final String RESULT_FILE = "results.txt";
-    private static final int WIDTH_HEIGHT = 6;
-    private static final int HALF_WIDTH = 3;
 
-    private Stage stage;
-    private Pane clickRectPane;
-    private ImageView imageView;
-    private Pane trueRectPane;
-
-    private final List<ImageData> imageData = new ArrayList<>();
-    private final List<ImageData> resultData = new ArrayList<>();
-    private List<Path> images;
-    private int imageOrder = 0;
+    private final List<ImageDataCenter> imageData = new ArrayList<>();
+    private final List<ImageDataCenter> resultData = new ArrayList<>();
 
     @Override
-    public void start(Stage primaryStage) {
-        stage = primaryStage;
-        images = ImageUtils
-                .findAllImages(BASE_PATH)
-                .sorted(Comparator.comparingInt(o -> Integer.parseInt(FileUtils.getFilenameWithoutExtension(o.getFileName().toString()))))
-                .collect(Collectors.toList());
+    void handleMouseClicked(MouseEvent mouseEvent) {
+        final double mx = mouseEvent.getX();
+        final double my = mouseEvent.getY();
 
-        VBox mainBox = new VBox(8);
-        mainBox.setAlignment(Pos.BASELINE_CENTER);
-        imageView = new ImageView();
-
-        Pane pane = new Pane();
-        clickRectPane = new Pane();
-        trueRectPane = new Pane();
-        pane.getChildren().addAll(imageView, clickRectPane, trueRectPane);
-
-        mainBox.getChildren().add(pane);
-        loadData();
-        loadImage();
-
-        Scene scene = new Scene(mainBox);
-        scene.setOnKeyPressed(this::handleSceneKeyPressed);
-        scene.setOnMouseClicked(this::handleMouseClicked);
-
-        primaryStage.setScene(scene);
-        primaryStage.setMaximized(true);
-        primaryStage.show();
-    }
-
-    private void handleSceneKeyPressed(KeyEvent keyEvent) {
-        switch (keyEvent.getCode()) {
-            case LEFT:
-            case RIGHT:
-                if (keyEvent.getCode() == KeyCode.LEFT) imageOrder--;
-                else imageOrder++;
-                loadImage();
-                break;
-            case C:
-                clickRectPane.getChildren().clear();
-                break;
-        }
-    }
-
-    private void handleMouseClicked(MouseEvent mouseEvent) {
-        double x = mouseEvent.getX();
-        double y = mouseEvent.getY();
-        Rectangle rectangle = new Rectangle(x - HALF_WIDTH, y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
+        Rectangle rectangle = new Rectangle(mx - HALF_WIDTH, my - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
         rectangle.setFill(Color.RED);
 
         ObservableList<Node> rectangles = clickRectPane.getChildren();
@@ -113,25 +55,26 @@ public class Tag extends Application {
             trueRectPane.getChildren().clear();
             trueRectPane.getChildren().add(new Rectangle(cx, cy, WIDTH_HEIGHT, WIDTH_HEIGHT));
 
-            Optional<ImageData> imageDataOptional = imageData.stream()
+            Optional<ImageDataCenter> imageDataOptional = imageData.stream()
                     .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
                     .findFirst();
 
             if (imageDataOptional.isPresent()) {
-                ImageData imageData = imageDataOptional.get();
+                ImageDataCenter imageData = imageDataOptional.get();
                 imageData.x = (int) Math.round(cx + HALF_WIDTH);
                 imageData.y = (int) Math.round(cy + HALF_WIDTH);
-                saveData();
+                saveData(this.imageData, BASE_PATH + FILE);
             }
         }
     }
 
-    private void loadData() {
+    @Override
+    void loadData() {
         loadData2(imageData, FILE, false);
         loadData2(resultData, RESULT_FILE, true);
     }
 
-    private void loadData2(List<ImageData> data, String filename, boolean result) {
+    private void loadData2(List<ImageDataCenter> data, String filename, boolean result) {
         int length = result ? 3 : 6;
 
         String content = FileUtils.readFile(BASE_PATH + filename);
@@ -146,22 +89,15 @@ public class Tag extends Application {
                 int h = Integer.parseInt(split[3]);
                 int sat = Integer.parseInt(split[4]);
                 int v = Integer.parseInt(split[5]);
-                data.add(new ImageData(split[0], x, y, h, sat, v));
+                data.add(new ImageDataCenter(split[0], x, y, h, sat, v));
             } else {
-                data.add(new ImageData(split[0], x, y));
+                data.add(new ImageDataCenter(split[0], x, y));
             }
         }
     }
 
-    private void saveData() {
-        StringBuilder sb = new StringBuilder();
-        for (ImageData image : imageData) {
-            sb.append(image.toString()).append(System.lineSeparator());
-        }
-        FileUtils.writeFile(BASE_PATH + FILE, sb.toString());
-    }
-
-    private void loadImage() {
+    @Override
+    void loadImage() {
         clickRectPane.getChildren().clear();
         trueRectPane.getChildren().clear();
 
@@ -171,27 +107,32 @@ public class Tag extends Application {
         Image image = new Image("file:///" + images.get(imageOrder).toAbsolutePath());
         imageView.setImage(image);
 
-        Optional<ImageData> imageDataOptional = imageData.stream()
+        Optional<ImageDataCenter> imageDataOptional = imageData.stream()
                 .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
                 .findFirst();
 
-        Optional<ImageData> imageResultDataOptional = resultData.stream()
+        Optional<ImageDataCenter> imageResultDataOptional = resultData.stream()
                 .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
                 .findFirst();
 
         if (imageDataOptional.isPresent()) {
-            ImageData id = imageDataOptional.get();
+            ImageDataCenter id = imageDataOptional.get();
             trueRectPane.getChildren().add(new Rectangle(id.x - HALF_WIDTH, id.y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT));
         }
 
         if (imageResultDataOptional.isPresent()) {
-            ImageData id = imageResultDataOptional.get();
+            ImageDataCenter id = imageResultDataOptional.get();
             Rectangle rectangle = new Rectangle(id.x - HALF_WIDTH, id.y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
             rectangle.setFill(Color.YELLOW);
             trueRectPane.getChildren().add(rectangle);
         }
 
         stage.setTitle(images.get(imageOrder).getFileName().toString());
+    }
+
+    @Override
+    String getBasePath() {
+        return BASE_PATH;
     }
 
     public static void main(String[] args) {
