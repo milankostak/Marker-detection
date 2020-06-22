@@ -58,6 +58,8 @@ const Detection = (function() {
 	let timerQueryExt, timerQuery;
 	let queryRead = true;
 
+	let targetColor;
+
 	/**
 	 * Public initialization function. Sets all necessary variables.
 	 * @public
@@ -184,6 +186,7 @@ const Detection = (function() {
 		program3.texture = gl.getUniformLocation(program3, "texture");
 		program3.width = gl.getUniformLocation(program3, "width");
 		program3.height = gl.getUniformLocation(program3, "height");
+		program3.targetColor = gl.getUniformLocation(program3, "targetColor");
 
 		program4 = gl.createProgram();
 		Utils.initShaders(gl, program4, "/shaders/main.vert", "/shaders/step2.frag", true);
@@ -340,6 +343,7 @@ const Detection = (function() {
 
 		gl.uniform1f(program3.width, width);
 		gl.uniform1f(program3.height, height);
+		gl.uniform3fv(program3.targetColor, targetColor);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
 		// target, level, internalformat, width, height, border, format, type, ArrayBufferView? pixels)
@@ -429,7 +433,7 @@ const Detection = (function() {
 	///
 	/// 3. step: read data
 	///
-		//readData2();
+		readData2();
 
 	///
 	//  4. step: optionally draw result
@@ -519,8 +523,20 @@ const Detection = (function() {
 		//console.log(readBuffer2);
 		if (MEASURE_TIME) window.performance.mark("a");
 
-		send({max: 100, x: readBuffer2[4], y: readBuffer2[0], count: 1});
+		// send({max: 100, x: readBuffer2[4], y: readBuffer2[0], count: 1});
 	}
+
+	/**
+	 * Set external color, usually for testing purpose.
+	 * Uncomment readData2() !!
+	 */
+	Detection.setExternalColor = (rgb) => {
+		targetColor = Float32Array.from(rgb);
+	};
+
+	Detection.getReadBuffer2 = () => {
+		return readBuffer2;
+	};
 
 	/**
 	 * Update cameraTexture from video feed

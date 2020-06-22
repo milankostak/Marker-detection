@@ -98,6 +98,87 @@
 		});
 	};
 
+	function test(start, end) {
+		let loaded = 0;
+		const data = [];
+		Utils.getDataFromFile("/python/new/test.txt", (text) => {
+			const testData = text.split("\r\n")
+					.map(t => t.split(","))
+					.filter(t => t[0] !== "")
+					.map(t => [t[0], t[1] * 1, t[2] * 1, t[3] / 360, t[4] / 100, t[5] / 100])
+					.sort((a, b) => a[0] <= b[0] ? -1 : 1);
+
+			for (let i = start; i <= end; i++) {
+				const name = String(i).padStart(3, "0");
+				const img = new Image();
+				img.onload = () => {
+					const hsv = testData[i];
+					const rgb = HSVtoRGB(hsv[3], hsv[4], hsv[5]);
+					// console.log(rgb);
+					Detection.setExternalColor(rgb);
+					Detection.setupAfterVideoStreamIsReady(img.width, img.height);
+					Detection.updateTexture(img);
+					Detection.repaint();
+					const readData = Detection.getReadBuffer2();
+					if (readData[0] === 0 && readData[4] === 0) {
+						data.push(name + ".jpg,-1,-1");
+					} else {
+						data.push(name + ".jpg," + readData[0] + "," + (img.height - readData[4]));
+					}
+					loaded++;
+				};
+				img.src = "/python/new/" + name + ".jpg";
+			}
+		});
+		const total = end + 1;
+		const interval = function() {
+			if (loaded < total) {
+				setTimeout(interval, 50);
+			} else {
+				console.log(data.sort().reduce((a, b) => a + "\n" + b))
+			}
+		};
+		setTimeout(interval, 1);
+	}
+
+	function HSVtoRGB(h, s, v) {
+		var r, g, b, i, f, p, q, t;
+		if (arguments.length === 1) {
+			s = h.s, v = h.v, h = h.h;
+		}
+		i = Math.floor(h * 6);
+		f = h * 6 - i;
+		p = v * (1 - s);
+		q = v * (1 - f * s);
+		t = v * (1 - (1 - f) * s);
+		switch (i % 6) {
+			case 0:
+				r = v, g = t, b = p;
+				break;
+			case 1:
+				r = q, g = v, b = p;
+				break;
+			case 2:
+				r = p, g = v, b = t;
+				break;
+			case 3:
+				r = p, g = q, b = v;
+				break;
+			case 4:
+				r = t, g = p, b = v;
+				break;
+			case 5:
+				r = v, g = p, b = q;
+				break;
+		}
+		// return [
+		// 	Math.round(r * 255),
+		// 	Math.round(g * 255),
+		// 	Math.round(b * 255)
+		// ];
+		return [r, g, b];
+	}
+
 	/**
 	 * Main animation function that triggers detection in the image from camera
 	 */
@@ -118,6 +199,8 @@
 		// hide loading message
 		document.querySelector(".loading-container").classList.add("hidden");
 		document.querySelector(".main").classList.remove("hidden");
+
+		test(0, 139);
 	}
 
 	/**
