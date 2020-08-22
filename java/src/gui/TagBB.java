@@ -47,8 +47,9 @@ public class TagBB extends App {
             trueRectPane.getChildren().clear();
             trueRectPane.getChildren().add(createRectangle(x, y, x2 - x, y2 - y));
 
-            Optional<ImageBB> imageDataOptional = imageData.stream()
-                    .filter(imageD -> imageD.filename.equals(images.get(imageOrder).getFileName().toString()))
+            Optional<ImageBB> imageDataOptional = imageData
+                    .stream()
+                    .filter(imageD -> imageD.filename.equals(images.get(imageOrder).toAbsolutePath().toString()))
                     .findFirst();
 
             if (imageDataOptional.isPresent()) {

@@ -15,11 +15,9 @@ public final class FileUtils {
      * @param filename filename
      * @param content  string content to be written into a file.
      */
-    public static void writeFile(String filename, String content) {
-        try {
-            OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8);
+    public static void writeFile(final String filename, final String content) {
+        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8)){
             out.write(content);
-            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
