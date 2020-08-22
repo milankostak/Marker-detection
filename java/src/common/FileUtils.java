@@ -31,7 +31,7 @@ public final class FileUtils {
      * @param filename filename
      * @return content of the text file, empty string if error occurs
      */
-    public static String readFile(String filename) {
+    public static String readFile(final String filename) {
         try {
             return new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -40,7 +40,7 @@ public final class FileUtils {
         return "";
     }
 
-    public static String getFilenameWithoutExtension(String filename) {
+    public static String getFilenameWithoutExtension(final String filename) {
         return filename.replaceFirst("[.][^.]+$", "");
     }
 

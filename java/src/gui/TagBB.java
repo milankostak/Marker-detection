@@ -30,14 +30,14 @@ public class TagBB extends App {
         final double mx = mouseEvent.getX();
         final double my = mouseEvent.getY();
 
-        Rectangle rectangle = new Rectangle(mx - HALF_WIDTH, my - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
+        final Rectangle rectangle = new Rectangle(mx - HALF_WIDTH, my - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
         rectangle.setFill(Color.RED);
 
-        ObservableList<Node> rectangles = clickRectPane.getChildren();
+        final ObservableList<Node> rectangles = clickRectPane.getChildren();
         rectangles.add(rectangle);
         if (rectangles.size() == 4) {
-            ToIntFunction<Node> getX = r -> (int) Math.round(((Rectangle) r).getX() + HALF_WIDTH);
-            ToIntFunction<Node> getY = r -> (int) Math.round(((Rectangle) r).getY() + HALF_WIDTH);
+            final ToIntFunction<Node> getX = r -> (int) Math.round(((Rectangle) r).getX() + HALF_WIDTH);
+            final ToIntFunction<Node> getY = r -> (int) Math.round(((Rectangle) r).getY() + HALF_WIDTH);
             int x = rectangles.stream().mapToInt(getX).min().orElse(0);
             int y = rectangles.stream().mapToInt(getY).min().orElse(0);
             int x2 = rectangles.stream().mapToInt(getX).max().orElse(0);
@@ -52,16 +52,16 @@ public class TagBB extends App {
                     .findFirst();
 
             if (imageDataOptional.isPresent()) {
-                ImageBB imageBB = imageDataOptional.get();
+                final ImageBB imageBB = imageDataOptional.get();
                 imageBB.x = x;
                 imageBB.y = y;
                 imageBB.x2 = x2;
                 imageBB.y2 = y2;
             } else {
-                Path path = images.get(imageOrder).toAbsolutePath();
+                final Path path = images.get(imageOrder).toAbsolutePath();
                 int id = Integer.parseInt(FileUtils.getFilenameWithoutExtension(path.getFileName().toString()));
-                Dimension imageDimension = ImageUtils.getImageDimension(path.toFile());
-                ImageBB imageBB = new ImageBB(id, path.toString(), imageDimension.width, imageDimension.height, x, y, x2, y2);
+                final Dimension imageDimension = ImageUtils.getImageDimension(path.toFile());
+                final ImageBB imageBB = new ImageBB(id, path.toString(), imageDimension.width, imageDimension.height, x, y, x2, y2);
                 imageData.add(imageBB);
             }
             saveData(imageData, BASE_PATH + FILE);
@@ -69,7 +69,7 @@ public class TagBB extends App {
     }
 
     private Rectangle createRectangle(int x, int y, int w, int h) {
-        Rectangle rectangle = new Rectangle(x, y, w, h);
+        final Rectangle rectangle = new Rectangle(x, y, w, h);
         rectangle.setFill(Color.TRANSPARENT);
         rectangle.setStroke(Color.BLACK);
         rectangle.setStrokeWidth(2);
@@ -78,14 +78,14 @@ public class TagBB extends App {
 
     @Override
     void loadData() {
-        String content = FileUtils.readFile(BASE_PATH + FILE);
+        final String content = FileUtils.readFile(BASE_PATH + FILE);
         if (content.isEmpty()) return;
-        String[] lines = content.split(System.lineSeparator());
+        final String[] lines = content.split(System.lineSeparator());
         for (String s : lines) {
-            String[] split = s.split(" ");
+            final String[] split = s.split(" ");
             if (split.length != 9) continue;
             int id = Integer.parseInt(split[0]);
-            String imagePath = split[1];
+            final String imagePath = split[1];
             int w = Integer.parseInt(split[2]);
             int h = Integer.parseInt(split[3]);
             int x = Integer.parseInt(split[5]);
@@ -104,15 +104,16 @@ public class TagBB extends App {
         if (imageOrder < 0) imageOrder = 0;
         else if (imageOrder >= images.size()) imageOrder = images.size() - 1;
 
-        Image image = new Image("file:///" + images.get(imageOrder).toAbsolutePath());
+        final Image image = new Image("file:///" + images.get(imageOrder).toAbsolutePath());
         imageView.setImage(image);
 
-        Optional<ImageBB> imageDataOptional = imageData.stream()
+        final Optional<ImageBB> imageDataOptional = imageData
+                .stream()
                 .filter(imageD -> imageD.filename.equals(images.get(imageOrder).toString()))
                 .findFirst();
 
         if (imageDataOptional.isPresent()) {
-            ImageBB bb = imageDataOptional.get();
+            final ImageBB bb = imageDataOptional.get();
             trueRectPane.getChildren().add(createRectangle(bb.x, bb.y, bb.x2 - bb.x, bb.y2 - bb.y));
         }
 

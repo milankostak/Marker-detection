@@ -45,7 +45,7 @@ public final class ImageUtils {
      * @param filename filename of an image
      * @return Path or null if error occurs
      */
-    public static Path findImage(String filename, String path) {
+    public static Path findImage(final String filename, final String path) {
         try {
             return Files.find(
                     Paths.get(path),
@@ -65,7 +65,7 @@ public final class ImageUtils {
      *
      * @return Stream<Path> or empty stream if error occurs
      */
-    public static Stream<Path> findAllImages(String path) {
+    public static Stream<Path> findAllImages(final String path) {
         try {
             return Files.find(
                     Paths.get(path),
@@ -84,7 +84,7 @@ public final class ImageUtils {
      * @param filePath file to be checked
      * @return true if file is image, false otherwise
      */
-    private static boolean isFileImage(Path filePath) {
+    private static boolean isFileImage(final Path filePath) {
         try {
             final String s = Files.probeContentType(filePath);
             return s != null && s.contains("image");

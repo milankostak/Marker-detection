@@ -2,7 +2,7 @@ package model;
 
 public abstract class ImageData {
 
-    public String filename;
+    public final String filename;
     public int x, y;
 
     ImageData(String filename, int x, int y) {

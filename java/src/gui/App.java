@@ -41,11 +41,11 @@ public abstract class App extends Application {
                 .sorted(Comparator.comparingInt(o -> Integer.parseInt(FileUtils.getFilenameWithoutExtension(o.getFileName().toString()))))
                 .collect(Collectors.toList());
 
-        VBox mainBox = new VBox(8);
+        final VBox mainBox = new VBox(8);
         mainBox.setAlignment(Pos.BASELINE_CENTER);
         imageView = new ImageView();
 
-        Pane pane = new Pane();
+        final Pane pane = new Pane();
         clickRectPane = new Pane();
         trueRectPane = new Pane();
         pane.getChildren().addAll(imageView, clickRectPane, trueRectPane);
@@ -54,7 +54,7 @@ public abstract class App extends Application {
         loadData();
         loadImage();
 
-        Scene scene = new Scene(mainBox);
+        final Scene scene = new Scene(mainBox);
         scene.setOnKeyPressed(this::handleSceneKeyPressed);
         scene.setOnMouseClicked(this::handleMouseClicked);
 
@@ -63,7 +63,7 @@ public abstract class App extends Application {
         primaryStage.show();
     }
 
-    private void handleSceneKeyPressed(KeyEvent keyEvent) {
+    private void handleSceneKeyPressed(final KeyEvent keyEvent) {
         switch (keyEvent.getCode()) {
             case LEFT:
             case RIGHT:
@@ -79,9 +79,9 @@ public abstract class App extends Application {
 
     abstract void handleMouseClicked(MouseEvent mouseEvent);
 
-    final void saveData(List<? extends ImageData> imageData, String file) {
-        StringBuilder sb = new StringBuilder();
-        for (ImageData image : imageData) {
+    final void saveData(final List<? extends ImageData> imageData, final String file) {
+        final StringBuilder sb = new StringBuilder();
+        for (final ImageData image : imageData) {
             sb.append(image.toString()).append(System.lineSeparator());
         }
         FileUtils.writeFile(file, sb.toString());
