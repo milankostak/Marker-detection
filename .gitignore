@@ -5,3 +5,4 @@ package-lock.json
 key.key
 cert.crt
 /python/*/*
+/python/*.txt
