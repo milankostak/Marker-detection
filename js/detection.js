@@ -56,7 +56,7 @@ const Detection = (() => {
 	/**
 	 * Public initialization function. Sets all necessary variables.
 	 * @public
-	 * @return {boolean} true or false if the initialization was successful
+     * @return {boolean} true or false - the initialization was successful or not
 	 */
 	Detection.init = () => {
 		if (!initWebGL()) return false;
@@ -486,7 +486,7 @@ const Detection = (() => {
 			value[j] = readBufferColor[i + 2];
 		}
 
-		// 2.process hue
+		// 2. process hue
 		// https://en.wikipedia.org/wiki/Mean_of_circular_quantities
 		let sumSin = 0;
 		let sumCos = 0;

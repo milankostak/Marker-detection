@@ -40,33 +40,7 @@
 		window.addEventListener("resize", windowSizeChanged, false);
 		windowSizeChanged();
 
-		// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-		// get access to camera
-		navigator.mediaDevices.getUserMedia({
-			audio: false,
-			video: {width: 1280, height: 720, facingMode: "environment"}
-			/*video: {
-				width: { min: 720, ideal: 1024, max: 1280 },
-				height: { min: 540, max: 720 },
-				//prefer rear camera
-				facingMode: "environment"
-			}*/
-		}).then((stream) => {
-			video.srcObject = stream;
-		}).catch((error) => {
-			let msg;
-			if (error.name === "ConstraintNotSatisfiedError" || error.name === "NotFoundError") {
-				msg = "Your camera does not meet required resolution for this application to work.";
-			} else if (error.name === "TrackStartError") {
-				msg = "Your camera is probably used by different application at this time.";
-			} else {
-				msg = "There was an unknown error when accessing your camera.\nError message:\n" + error;
-			}
-			document.querySelector(".loading").innerHTML = msg;
-			alert(msg);
-			console.log("%cVideo Error: " + error, 'color: red');
-			console.log(msg);
-		});
+		Utils.getCamera(video, 1280, 720, "environment", document.querySelector(".loading"));
 	};
 
 	/**
