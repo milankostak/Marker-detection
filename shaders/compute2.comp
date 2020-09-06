@@ -1,0 +1,46 @@
+#version 310 es
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+layout (std430, binding = 0) buffer SSBOin {
+    float data[];
+} ssboIn;
+
+layout (std430, binding = 1) buffer SSBOout {
+    float data[];
+} ssboOut;
+
+uniform uint width;
+uniform uint height;
+
+
+void main() {
+    int offset = 0;
+    float sum = 0.0;
+    float sumAll = 0.0;
+    float count = 0.0;
+    if (gl_GlobalInvocationID.x == uint(0)) { // x
+        for (uint i = uint(0); i < width; i++) {
+            float value = ssboIn.data[i];
+            if (value > 0.0) {
+                sum += value;
+                sumAll += value * float(i + uint(1));
+                count++;
+            }
+        }
+    } else { // y
+        offset = 4;
+        for (uint i = uint(0); i < height; i++) {
+            float value = ssboIn.data[width + i];
+            if (value > 0.0) {
+                sum += value;
+                sumAll += value * float(i + uint(1));
+                count++;
+            }
+        }
+    }
+    float coord = (sum == 0.0) ? 0.0 : sumAll / sum;
+    ssboOut.data[offset] = coord;
+    ssboOut.data[offset + 1] = sumAll;
+    ssboOut.data[offset + 2] = sum;
+    ssboOut.data[offset + 3] = count;
+}

@@ -1,0 +1,107 @@
+#version 310 es
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout (rgba32f, binding = 1) readonly uniform highp image2D inputImage;
+layout (std430, binding = 0) buffer SSBO {
+    float data[];
+} ssbo;
+
+uniform uint width;
+uniform uint height;
+uniform float targetHue;
+
+const float hueThreshold = 20.0;
+const float svThreshold = 0.35;
+const float erosionThreshold = 6.5;
+
+// https://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl
+// https://en.wikipedia.org/wiki/HSL_and_HSV
+vec3 rgb2hsv(vec3 c) {
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    float e = 1.0e-10;
+    // all components are in the range <0;1>, including hue
+    vec3 hsv = vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+    // convert hue to range <0;360>
+    return vec3(hsv.x * 360.0, hsv.yz);
+}
+
+float distanceInHsv(float fixedTargetHue, float fixedCurrentHue) {
+    float diff = abs(fixedTargetHue - fixedCurrentHue);
+    float weight = pow((hueThreshold - diff) / hueThreshold, 0.5);
+    return weight;// in range <0;1>
+}
+
+float getPixelWeight(ivec2 texCoords) {
+    vec3 pixel = imageLoad(inputImage, texCoords).rgb;
+    vec3 hsv = rgb2hsv(pixel);
+
+    // fix circular hue
+    float fixedCurrentHue = hsv.x;
+    float fixedTargetHue = targetHue;
+    if (fixedTargetHue + hueThreshold > 360.0 && fixedCurrentHue < hueThreshold) fixedCurrentHue += 360.0;
+    if (fixedTargetHue < hueThreshold && fixedCurrentHue + hueThreshold > 360.0) fixedTargetHue += 360.0;
+
+    bool hueInRange = fixedCurrentHue > fixedTargetHue - hueThreshold && fixedCurrentHue < fixedTargetHue + hueThreshold;
+    if (hueInRange && hsv.y > svThreshold && hsv.z > svThreshold) {
+        return distanceInHsv(fixedTargetHue, fixedCurrentHue);
+    } else {
+        return 0.0;
+    }
+}
+
+void readNeighborPixels(ivec2 texCoords, inout float weights[8]) {
+    int s = texCoords.s;
+    int t = texCoords.t;
+
+    weights[0] = getPixelWeight(ivec2(s - 1, t - 1));// topLeft
+    weights[1] = getPixelWeight(ivec2(s, t - 1));// topMiddle
+    weights[2] = getPixelWeight(ivec2(s + 1, t - 1));// topRight
+    weights[3] = getPixelWeight(ivec2(s - 1, t));// middleLeft
+    weights[4] = getPixelWeight(ivec2(s + 1, t));// middleRight
+    weights[5] = getPixelWeight(ivec2(s - 1, t + 1));// bottomLeft
+    weights[6] = getPixelWeight(ivec2(s, t + 1));// bottomMiddle
+    weights[7] = getPixelWeight(ivec2(s + 1, t + 1));// bottomRight
+}
+
+float erosion(ivec2 texCoords) {
+    float weights[8];
+    readNeighborPixels(texCoords, weights);
+    float sum = 0.0;
+    for (int i = 0; i < 8; i++) {
+        sum += weights[i];
+    }
+    return sum;
+}
+
+void main() {
+    float sum = 0.0;
+    if (gl_GlobalInvocationID.x < width) {
+        uint x = gl_GlobalInvocationID.x;
+        for (uint y = uint(0); y < height; y++) {
+            ivec2 texCoords = ivec2(x, y);
+            float weight = getPixelWeight(texCoords);
+            // do erosion operation
+            if (weight != 0.0) {
+                float sumE = erosion(texCoords);
+                if (sumE < erosionThreshold) weight = 0.0;
+            }
+            sum += weight;
+        }
+    } else {
+        uint y = gl_GlobalInvocationID.x - width;
+        for (uint x = uint(0); x < width; x++) {
+            ivec2 texCoords = ivec2(x, y);
+            float weight = getPixelWeight(texCoords);
+            // do erosion operation
+            if (weight != 0.0) {
+                float sumE = erosion(texCoords);
+                if (sumE < erosionThreshold) weight = 0.0;
+            }
+            sum += weight;
+        }
+    }
+    ssbo.data[gl_GlobalInvocationID.x] = sum;
+}
