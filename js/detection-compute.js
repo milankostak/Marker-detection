@@ -12,6 +12,8 @@
  * @version 4.0
  */
 const Detection = (() => {
+    // https://github.com/oktomus/web-experiments/blob/master/webgl-compute/progressive-steps/app.js
+    // https://github.com/9ballsyndrome/WebGL_Compute_shader
 
     /**
      * Main object which is exported into public Detection variable.
