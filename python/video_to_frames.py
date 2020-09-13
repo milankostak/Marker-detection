@@ -11,9 +11,9 @@ for video in videos:
     count = 0
     frames_count = capture.get(cv2.CAP_PROP_FRAME_COUNT)
     while success:
-        filename = "%03d.jpg" % name
+        filename = "%04d.jpg" % name
         name += 1
-        cv2.imwrite(filename, image)  # save frame as JPEG file
+        cv2.imwrite("a/" + filename, image)  # save frame as JPEG file
 
         row = ','.join(str(e) for e in [filename, -1, -1])
         test_txt += row + "\n"
