@@ -3,7 +3,6 @@
 const PORT = 3000;
 
 const express = require('express');
-const bodyParser = require('body-parser');
 const serveStatic = require('serve-static');
 
 // const fs = require('fs');
@@ -14,8 +13,7 @@ const serveStatic = require('serve-static');
 
 const app = express()
     .use(serveStatic(__dirname, {'controller': false}))
-    .use(serveStatic(__dirname, {'controller-compute': false}))
-    .use(bodyParser.json({limit: '5mb'}));
+    .use(serveStatic(__dirname, {'controller-compute': false}));
 
 // https.createServer(credentials, app).listen(
 // 	PORT, () => console.log(`App HTTPS server is running.\nPort number: ${PORT}`)
