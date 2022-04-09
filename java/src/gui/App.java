@@ -5,13 +5,13 @@ import common.ImageUtils;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import model.ImageData;
@@ -27,7 +27,7 @@ public abstract class App extends Application {
     static final int HALF_WIDTH = 3;
 
     Stage stage;
-    ImageView imageView;
+    private ImageView imageView;
     Pane trueRectPane;
     Pane clickRectPane;
 
@@ -54,7 +54,7 @@ public abstract class App extends Application {
 
         mainBox.getChildren().add(pane);
         loadData();
-        loadImage();
+        loadImagePrivate();
 
         final Scene scene = new Scene(mainBox);
         scene.setOnKeyPressed(this::handleSceneKeyPressed);
@@ -71,15 +71,15 @@ public abstract class App extends Application {
             case RIGHT:
                 if (keyEvent.getCode() == KeyCode.LEFT) imageOrder--;
                 else imageOrder++;
-                loadImage();
+                loadImagePrivate();
                 break;
             case HOME:
                 imageOrder = 0;
-                loadImage();
+                loadImagePrivate();
                 break;
             case END:
                 imageOrder = images.size() - 1;
-                loadImage();
+                loadImagePrivate();
                 break;
             case C:
                 clickRectPane.getChildren().clear();
@@ -104,6 +104,19 @@ public abstract class App extends Application {
     abstract void loadData();
 
     abstract void loadImage();
+
+    private void loadImagePrivate() {
+        clickRectPane.getChildren().clear();
+        trueRectPane.getChildren().clear();
+
+        if (imageOrder < 0) imageOrder = 0;
+        else if (imageOrder >= images.size()) imageOrder = images.size() - 1;
+
+        final Image image = new Image("file:///" + images.get(imageOrder).toAbsolutePath());
+        imageView.setImage(image);
+
+        loadImage();
+    }
 
     abstract String getBasePath();
 }

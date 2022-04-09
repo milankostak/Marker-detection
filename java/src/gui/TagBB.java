@@ -5,7 +5,6 @@ import common.ImageUtils;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -99,15 +98,6 @@ public class TagBB extends App {
 
     @Override
     void loadImage() {
-        clickRectPane.getChildren().clear();
-        trueRectPane.getChildren().clear();
-
-        if (imageOrder < 0) imageOrder = 0;
-        else if (imageOrder >= images.size()) imageOrder = images.size() - 1;
-
-        final Image image = new Image("file:///" + images.get(imageOrder).toAbsolutePath());
-        imageView.setImage(image);
-
         final Optional<ImageBB> imageDataOptional = imageData
                 .stream()
                 .filter(imageD -> imageD.filename.equals(images.get(imageOrder).toString()))
