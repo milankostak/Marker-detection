@@ -30,7 +30,7 @@ public class TagBB extends App {
         final double mx = mouseEvent.getX();
         final double my = mouseEvent.getY();
 
-        final Rectangle rectangle = new Rectangle(mx - HALF_WIDTH, my - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
+        final Rectangle rectangle = createDefaultRectangle(mx, my);
         rectangle.setFill(Color.RED);
 
         final ObservableList<Node> rectangles = clickRectPane.getChildren();

@@ -28,7 +28,7 @@ public class TagCenter extends App {
         final double mx = mouseEvent.getX();
         final double my = mouseEvent.getY();
 
-        final Rectangle rectangle = new Rectangle(mx - HALF_WIDTH, my - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
+        final Rectangle rectangle = createDefaultRectangle(mx, my);
         rectangle.setFill(Color.RED);
 
         final ObservableList<Node> rectangles = clickRectPane.getChildren();
@@ -120,12 +120,12 @@ public class TagCenter extends App {
 
         if (imageDataOptional.isPresent()) {
             final ImageDataCenter id = imageDataOptional.get();
-            trueRectPane.getChildren().add(new Rectangle(id.x - HALF_WIDTH, id.y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT));
+            trueRectPane.getChildren().add(createDefaultRectangle(id.x, id.y));
         }
 
         if (imageResultDataOptional.isPresent()) {
             final ImageDataCenter id = imageResultDataOptional.get();
-            Rectangle rectangle = new Rectangle(id.x - HALF_WIDTH, id.y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
+            final Rectangle rectangle = createDefaultRectangle(id.x, id.y);
             rectangle.setFill(Color.YELLOW);
             trueRectPane.getChildren().add(rectangle);
         }

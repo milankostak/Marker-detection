@@ -11,6 +11,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import model.ImageData;
 
@@ -93,6 +95,10 @@ public abstract class App extends Application {
             sb.append(image.toString()).append(System.lineSeparator());
         }
         FileUtils.writeFile(file, sb.toString());
+    }
+
+    final Rectangle createDefaultRectangle(double x, double y) {
+        return new Rectangle(x - HALF_WIDTH, y - HALF_WIDTH, WIDTH_HEIGHT, WIDTH_HEIGHT);
     }
 
     abstract void loadData();
