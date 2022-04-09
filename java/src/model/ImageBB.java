@@ -9,13 +9,17 @@ public class ImageBB extends ImageData {
     private final int imageWidth, imageHeight;
     public int x2, y2;
 
-    public ImageBB(int id, String filename, int imageWidth, int imageHeight, int x, int y, int x2, int y2) {
-        super(filename, x, y);
+    public ImageBB(int id, String filePath, int imageWidth, int imageHeight, int x, int y, int x2, int y2) {
+        super(filePath, x, y);
         this.id = id;
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
         this.x2 = x2;
         this.y2 = y2;
+    }
+
+    public int getId() {
+        return id;
     }
 
     @Override
