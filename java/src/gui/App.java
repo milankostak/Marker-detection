@@ -71,6 +71,14 @@ public abstract class App extends Application {
                 else imageOrder++;
                 loadImage();
                 break;
+            case HOME:
+                imageOrder = 0;
+                loadImage();
+                break;
+            case END:
+                imageOrder = images.size() - 1;
+                loadImage();
+                break;
             case C:
                 clickRectPane.getChildren().clear();
                 break;
