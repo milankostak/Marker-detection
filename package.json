@@ -19,8 +19,7 @@
     "url": "git://github.com/milankostak/Marker-detection.git"
   },
   "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
   "version": "3.0.0"
 }

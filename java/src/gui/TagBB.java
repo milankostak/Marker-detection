@@ -98,9 +98,12 @@ public class TagBB extends App {
 
     @Override
     void loadImage() {
+        final int imageID = Integer.parseInt(
+                FileUtils.getFilenameWithoutExtension(images.get(imageOrder).getFileName().toString())
+        );
         final Optional<ImageBB> imageDataOptional = imageData
                 .stream()
-                .filter(imageD -> imageD.filename.equals(images.get(imageOrder).toString()))
+                .filter(imageBB -> imageBB.getId() == imageID)
                 .findFirst();
 
         if (imageDataOptional.isPresent()) {
