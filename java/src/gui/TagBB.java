@@ -19,7 +19,7 @@ import java.util.function.ToIntFunction;
 
 public class TagBB extends App {
 
-    private final String BASE_PATH = "D:\\images\\draw1\\resized416\\";
+    private final String BASE_PATH = "D:\\images\\draw3\\original\\";
     private static final String FILE = "results.txt";
 
     private final List<ImageBB> imageData = new ArrayList<>();
@@ -59,9 +59,8 @@ public class TagBB extends App {
                 imageBB.y2 = y2;
             } else {
                 final Path path = images.get(imageOrder).toAbsolutePath();
-                int id = Integer.parseInt(FileUtils.getFilenameWithoutExtension(path.getFileName().toString()));
                 final Dimension imageDimension = ImageUtils.getImageDimension(path.toFile());
-                final ImageBB imageBB = new ImageBB(id, path.toString(), imageDimension.width, imageDimension.height, x, y, x2, y2);
+                final ImageBB imageBB = new ImageBB(imageOrder, path.toString(), imageDimension.width, imageDimension.height, x, y, x2, y2);
                 imageData.add(imageBB);
             }
             saveData(imageData, BASE_PATH + FILE);
@@ -88,6 +87,7 @@ public class TagBB extends App {
             final String imagePath = split[1];
             int w = Integer.parseInt(split[2]);
             int h = Integer.parseInt(split[3]);
+//            int clazz = Integer.parseInt(split[4]); // always 0
             int x = Integer.parseInt(split[5]);
             int y = Integer.parseInt(split[6]);
             int x2 = Integer.parseInt(split[7]);
@@ -98,12 +98,9 @@ public class TagBB extends App {
 
     @Override
     void loadImage() {
-        final int imageID = Integer.parseInt(
-                FileUtils.getFilenameWithoutExtension(images.get(imageOrder).getFileName().toString())
-        );
         final Optional<ImageBB> imageDataOptional = imageData
                 .stream()
-                .filter(imageBB -> imageBB.getId() == imageID)
+                .filter(imageBB -> imageBB.getId() == imageOrder)
                 .findFirst();
 
         if (imageDataOptional.isPresent()) {

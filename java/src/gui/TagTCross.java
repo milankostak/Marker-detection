@@ -1,6 +1,7 @@
 package gui;
 
 import common.FileUtils;
+import common.ImageUtils;
 import javafx.application.Application;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -11,14 +12,16 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import model.MarkerTCross;
 
+import java.awt.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.ToIntFunction;
 
 public class TagTCross extends App {
 
-    private final String BASE_PATH = "D:\\images\\draw1\\resized416\\";
+    private final String BASE_PATH = "D:\\images\\draw3\\original\\";
     private static final String MARKER_FILE = "marker_data.txt";
 
     private final List<MarkerTCross> markerData = new ArrayList<>();
@@ -35,6 +38,11 @@ public class TagTCross extends App {
         rectangles.add(rectangle);
 
         if (rectangles.size() == 5) {
+            for (Node node : rectangles) {
+                Rectangle rectangle1 = (Rectangle) node;
+                rectangle1.setX(rectangle1.getX() * currentRatio);
+                rectangle1.setY(rectangle1.getY() * currentRatio);
+            }
             double x1 = ((Rectangle) rectangles.get(4)).getX(); // the center
             double y1 = ((Rectangle) rectangles.get(4)).getY(); // the center
             final int centerX = (int) Math.round(x1);
@@ -68,6 +76,13 @@ public class TagTCross extends App {
             Rectangle p3 = ((Rectangle) rectangles.get(2));
             Rectangle p4 = ((Rectangle) rectangles.get(3));
 
+            final ToIntFunction<Node> getX = r -> (int) Math.round(((Rectangle) r).getX() + HALF_WIDTH);
+            final ToIntFunction<Node> getY = r -> (int) Math.round(((Rectangle) r).getY() + HALF_WIDTH);
+            int bbX1 = rectangles.stream().mapToInt(getX).min().orElse(0);
+            int bbY1 = rectangles.stream().mapToInt(getY).min().orElse(0);
+            int bbX2 = rectangles.stream().mapToInt(getX).max().orElse(0);
+            int bbY2 = rectangles.stream().mapToInt(getY).max().orElse(0);
+
             Optional<MarkerTCross> markerDataOptional = markerData
                     .stream()
                     .filter(centerD -> centerD.filename.equals(images.get(imageOrder).toAbsolutePath().toString()))
@@ -75,6 +90,10 @@ public class TagTCross extends App {
 
             if (markerDataOptional.isPresent()) {
                 final MarkerTCross marker = markerDataOptional.get();
+                marker.bbX1 = bbX1;
+                marker.bbY1 = bbY1;
+                marker.bbX2 = bbX2;
+                marker.bbY2 = bbY2;
                 marker.x = centerX;
                 marker.y = centerY;
                 marker.orientation = angle;
@@ -88,9 +107,11 @@ public class TagTCross extends App {
                 marker.y4 = (int) Math.round(p4.getY());
             } else {
                 final Path path = images.get(imageOrder).toAbsolutePath();
-                int id = Integer.parseInt(FileUtils.getFilenameWithoutExtension(path.getFileName().toString()));
+                final Dimension imageDimension = ImageUtils.getImageDimension(path.toFile());
                 final MarkerTCross markerCenter = new MarkerTCross(
-                        id, path.toString(), centerX, centerY, angle,
+                        imageOrder, path.toString(),imageDimension.width, imageDimension.height,
+                        bbX1, bbY1, bbX2, bbY2,
+                        centerX, centerY, angle,
                         (int) Math.round(p1.getX()), (int) Math.round(p1.getY()),
                         (int) Math.round(p2.getX()), (int) Math.round(p2.getY()),
                         (int) Math.round(p3.getX()), (int) Math.round(p3.getY()),
@@ -100,19 +121,9 @@ public class TagTCross extends App {
             }
             saveData(markerData, BASE_PATH + MARKER_FILE);
 
-            rectangles.clear();
-
+            clickRectPane.getChildren().clear();
             trueRectPane.getChildren().clear();
-            trueRectPane.getChildren().add(createDefaultRectangle(x1, y1));
-
-            Line line = new Line(x1, y1, x2, y2);
-            line.setStroke(Color.GREEN);
-            line.setStrokeWidth(2);
-            trueRectPane.getChildren().add(line);
-
-            Text text = new Text(10, 30, Double.toString(angle));
-            text.setStyle("-fx-font: 30 arial;");
-            trueRectPane.getChildren().add(text);
+            loadImage();
         }
     }
 
@@ -123,22 +134,32 @@ public class TagTCross extends App {
         final String[] lines = content.split(System.lineSeparator());
         for (String s : lines) {
             final String[] split = s.split(" ");
-            if (split.length != 13) continue;
+            if (split.length != 20) continue;
             int id = Integer.parseInt(split[0]);
             final String imagePath = split[1];
-            int x = Integer.parseInt(split[2]);
-            int y = Integer.parseInt(split[3]);
-            double orientation = Double.parseDouble(split[4]);
-            int p1X = Integer.parseInt(split[5]);
-            int p1Y = Integer.parseInt(split[6]);
-            int p2X = Integer.parseInt(split[7]);
-            int p2Y = Integer.parseInt(split[8]);
-            int p3X = Integer.parseInt(split[9]);
-            int p3Y = Integer.parseInt(split[10]);
-            int p4X = Integer.parseInt(split[11]);
-            int p4Y = Integer.parseInt(split[12]);
+            int w = Integer.parseInt(split[2]);
+            int h = Integer.parseInt(split[3]);
+//            int clazz = Integer.parseInt(split[4]); // always 0
+            int bbX1 = Integer.parseInt(split[5]);
+            int bbY1 = Integer.parseInt(split[6]);
+            int bbX2 = Integer.parseInt(split[7]);
+            int bbY2 = Integer.parseInt(split[8]);
+            int centerX = Integer.parseInt(split[9]);
+            int centerY = Integer.parseInt(split[10]);
+            double orientation = Double.parseDouble(split[11]);
+            int p1X = Integer.parseInt(split[12]);
+            int p1Y = Integer.parseInt(split[13]);
+            int p2X = Integer.parseInt(split[14]);
+            int p2Y = Integer.parseInt(split[15]);
+            int p3X = Integer.parseInt(split[16]);
+            int p3Y = Integer.parseInt(split[17]);
+            int p4X = Integer.parseInt(split[18]);
+            int p4Y = Integer.parseInt(split[19]);
             markerData.add(new MarkerTCross(
-                    id, imagePath, x, y, orientation, p1X, p1Y, p2X, p2Y, p3X, p3Y, p4X, p4Y
+                    id, imagePath, w, h,
+                    bbX1, bbY1, bbX2, bbY2,
+                    centerX, centerY, orientation,
+                    p1X, p1Y, p2X, p2Y, p3X, p3Y, p4X, p4Y
             ));
         }
     }
@@ -147,11 +168,20 @@ public class TagTCross extends App {
     void loadImage() {
         if (markerData.size() > imageOrder) {
             final MarkerTCross bb = markerData.get(imageOrder);
-            trueRectPane.getChildren().add(createDefaultRectangle(bb.x, bb.y));
-            trueRectPane.getChildren().add(createDefaultRectangle(bb.x1, bb.y1));
-            trueRectPane.getChildren().add(createDefaultRectangle(bb.x2, bb.y2));
-            trueRectPane.getChildren().add(createDefaultRectangle(bb.x3, bb.y3));
-            trueRectPane.getChildren().add(createDefaultRectangle(bb.x4, bb.y4));
+            trueRectPane.getChildren().add(createDefaultRectangle(bb.x / currentRatio, bb.y / currentRatio));
+            trueRectPane.getChildren().add(createDefaultRectangle(bb.x1 / currentRatio, bb.y1 / currentRatio));
+            trueRectPane.getChildren().add(createDefaultRectangle(bb.x2 / currentRatio, bb.y2 / currentRatio));
+            trueRectPane.getChildren().add(createDefaultRectangle(bb.x3 / currentRatio, bb.y3 / currentRatio));
+            trueRectPane.getChildren().add(createDefaultRectangle(bb.x4 / currentRatio, bb.y4 / currentRatio));
+
+            Line line = new Line(
+                    bb.x / currentRatio, bb.y / currentRatio,
+                    bb.x1 / currentRatio, bb.y1 / currentRatio
+            );
+            line.setStroke(Color.GREEN);
+            line.setStrokeWidth(2);
+            trueRectPane.getChildren().add(line);
+
             Text text = new Text(10, 30, Double.toString(bb.orientation));
             text.setStyle("-fx-font: 30 arial;");
             trueRectPane.getChildren().add(text);

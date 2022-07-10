@@ -1,6 +1,5 @@
 package common;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +15,7 @@ public final class FileUtils {
      * @param content  string content to be written into a file.
      */
     public static void writeFile(final String filename, final String content) {
-        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(filename), StandardCharsets.UTF_8)){
+        try (OutputStreamWriter out = new OutputStreamWriter(Files.newOutputStream(Paths.get(filename)), StandardCharsets.UTF_8)) {
             out.write(content);
         } catch (IOException e) {
             e.printStackTrace();

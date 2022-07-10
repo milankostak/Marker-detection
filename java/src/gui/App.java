@@ -35,12 +35,18 @@ public abstract class App extends Application {
 
     List<Path> images;
 
+    double currentRatio = 1;
+    private double maxImageWidth, maxImageHeight;
+    private Image currentImage;
+
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
         images = ImageUtils
                 .findAllImages(getBasePath())
-                .sorted(Comparator.comparingInt(o -> Integer.parseInt(FileUtils.getFilenameWithoutExtension(o.getFileName().toString()))))
+                .sorted(Comparator.comparingInt(o ->
+                        Integer.parseInt(FileUtils.getFilenameWithoutExtension(o.getFileName().toString()).substring(0, 4))
+                ))
                 .collect(Collectors.toList());
 
         final VBox mainBox = new VBox(8);
@@ -59,6 +65,8 @@ public abstract class App extends Application {
         final Scene scene = new Scene(mainBox);
         scene.setOnKeyPressed(this::handleSceneKeyPressed);
         scene.setOnMouseClicked(this::handleMouseClicked);
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> heightChanged(newValue));
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> widthChanged(newValue));
 
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
@@ -114,7 +122,52 @@ public abstract class App extends Application {
 
         final Image image = new Image("file:///" + images.get(imageOrder).toAbsolutePath());
         imageView.setImage(image);
+        currentImage = image;
 
+        loadImage();
+    }
+
+    private void heightChanged(Number newValue) {
+        maxImageHeight = newValue.doubleValue();
+        updateImageSize();
+        updateBoundingBoxesRatio();
+    }
+
+    private void widthChanged(Number newValue) {
+        maxImageWidth = newValue.doubleValue();
+        updateImageSize();
+        updateBoundingBoxesRatio();
+    }
+
+    private void updateImageSize() {
+        // if image doesn't fit into the window
+        if (currentImage.getWidth() > maxImageWidth || currentImage.getHeight() > maxImageHeight) {
+            double widthRatio = currentImage.getWidth() / maxImageWidth;
+            double heightRatio = currentImage.getHeight() / maxImageHeight;
+
+            double currentRatio;
+            // at least one ratio is bigger than 1
+            //noinspection ManualMinMaxCalculation
+            if (widthRatio > heightRatio) {
+                // width has to be stretched more
+                currentRatio = widthRatio;
+            } else {
+                // height has to be stretched more
+                currentRatio = heightRatio;
+            }
+            imageView.setFitWidth(currentImage.getWidth() / currentRatio);
+            imageView.setFitHeight(currentImage.getHeight() / currentRatio);
+            this.currentRatio = currentRatio;
+        } else {
+            imageView.setFitWidth(currentImage.getWidth());
+            imageView.setFitHeight(currentImage.getHeight());
+            this.currentRatio = 1;
+        }
+    }
+
+    private void updateBoundingBoxesRatio() {
+        clickRectPane.getChildren().clear();
+        trueRectPane.getChildren().clear();
         loadImage();
     }
 
