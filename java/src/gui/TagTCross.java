@@ -40,8 +40,8 @@ public class TagTCross extends App {
         if (rectangles.size() == 5) {
             for (Node node : rectangles) {
                 Rectangle rectangle1 = (Rectangle) node;
-                rectangle1.setX(rectangle1.getX() * currentRatio);
-                rectangle1.setY(rectangle1.getY() * currentRatio);
+                rectangle1.setX((rectangle1.getX() * currentRatio) + HALF_WIDTH);
+                rectangle1.setY((rectangle1.getY() * currentRatio) + HALF_WIDTH);
             }
             double x1 = ((Rectangle) rectangles.get(4)).getX(); // the center
             double y1 = ((Rectangle) rectangles.get(4)).getY(); // the center
@@ -76,8 +76,8 @@ public class TagTCross extends App {
             Rectangle p3 = ((Rectangle) rectangles.get(2));
             Rectangle p4 = ((Rectangle) rectangles.get(3));
 
-            final ToIntFunction<Node> getX = r -> (int) Math.round(((Rectangle) r).getX() + HALF_WIDTH);
-            final ToIntFunction<Node> getY = r -> (int) Math.round(((Rectangle) r).getY() + HALF_WIDTH);
+            final ToIntFunction<Node> getX = r -> (int) Math.round(((Rectangle) r).getX());
+            final ToIntFunction<Node> getY = r -> (int) Math.round(((Rectangle) r).getY());
             int bbX1 = rectangles.stream().mapToInt(getX).min().orElse(0);
             int bbY1 = rectangles.stream().mapToInt(getY).min().orElse(0);
             int bbX2 = rectangles.stream().mapToInt(getX).max().orElse(0);
