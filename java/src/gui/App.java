@@ -77,8 +77,10 @@ public abstract class App extends Application {
         switch (keyEvent.getCode()) {
             case LEFT:
             case RIGHT:
-                if (keyEvent.getCode() == KeyCode.LEFT) imageOrder--;
-                else imageOrder++;
+                int speed = 1;
+                if (keyEvent.isControlDown()) speed = 10;
+                if (keyEvent.getCode() == KeyCode.LEFT) imageOrder -= speed;
+                else imageOrder += speed;
                 loadImagePrivate();
                 break;
             case HOME:
