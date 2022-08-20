@@ -109,7 +109,7 @@ public class TagTCross extends App {
                 final Path path = images.get(imageOrder).toAbsolutePath();
                 final Dimension imageDimension = ImageUtils.getImageDimension(path.toFile());
                 final MarkerTCross markerCenter = new MarkerTCross(
-                        imageOrder, path.toString(),imageDimension.width, imageDimension.height,
+                        imageOrder, path.toString(), imageDimension.width, imageDimension.height,
                         bbX1, bbY1, bbX2, bbY2,
                         centerX, centerY, angle,
                         (int) Math.round(p1.getX()), (int) Math.round(p1.getY()),
@@ -174,13 +174,11 @@ public class TagTCross extends App {
             trueRectPane.getChildren().add(createDefaultRectangle(bb.x3 / currentRatio, bb.y3 / currentRatio));
             trueRectPane.getChildren().add(createDefaultRectangle(bb.x4 / currentRatio, bb.y4 / currentRatio));
 
-            Line line = new Line(
-                    bb.x / currentRatio, bb.y / currentRatio,
-                    bb.x1 / currentRatio, bb.y1 / currentRatio
-            );
-            line.setStroke(Color.GREEN);
-            line.setStrokeWidth(2);
-            trueRectPane.getChildren().add(line);
+            createLine(bb.x, bb.y, bb.x1, bb.y1, Color.GREEN, 2);
+            createLine(bb.x1, bb.y1, bb.x2, bb.y2, Color.FUCHSIA, 1);
+            createLine(bb.x2, bb.y2, bb.x3, bb.y3, Color.BLUE, 1);
+            createLine(bb.x3, bb.y3, bb.x4, bb.y4, Color.BLUE, 1);
+            createLine(bb.x4, bb.y4, bb.x1, bb.y1, Color.BLUE, 1);
 
             Text text = new Text(10, 30, Double.toString(bb.orientation));
             text.setStyle("-fx-font: 30 arial;");
@@ -188,6 +186,16 @@ public class TagTCross extends App {
         }
 
         stage.setTitle(images.get(imageOrder).getFileName().toString());
+    }
+
+    private void createLine(int x1, int y1, int x2, int y2, Color color, int stroke) {
+        Line line = new Line(
+                x1 / currentRatio, y1 / currentRatio,
+                x2 / currentRatio, y2 / currentRatio
+        );
+        line.setStroke(color);
+        line.setStrokeWidth(stroke);
+        trueRectPane.getChildren().add(line);
     }
 
     @Override
