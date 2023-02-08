@@ -77,7 +77,7 @@ const Detection = (() => {
 		canvas = document.querySelector("canvas");
 		gl = canvas.getContext("webgl2", {antialias: false});
 
-		// if WebGL2 is not supported try to fall-back to version 1
+		// if WebGL2 is not supported try a fall-back to version 1
 		if (!gl) {
 			gl = canvas.getContext("experimental-webgl", {antialias: false});
 
@@ -269,7 +269,7 @@ const Detection = (() => {
 		height = canvas.height = videoHeight;
 
 		// allocate readBuffer for reading pixels
-		// do it now, because it is a time consuming operation
+		// do it now, because it is a time-consuming operation
 		let arraySize = Math.max(width, height) * 4 * 2; // 4 = RGBA, 2 rows
 		readBuffer = new Float32Array(arraySize);
 		readBuffer2 = new Float32Array(2 * 4); // 2 pixels
@@ -334,7 +334,7 @@ const Detection = (() => {
 		gl.uniform1f(program3.targetHue, targetHue[0]);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
-		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
+		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels
 		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormatTexture, Math.max(width, height), 2, 0, gl.RGBA, texturePrecision, null);
 
 		gl.viewport(0, 0, Math.max(width, height), 2);
@@ -405,7 +405,7 @@ const Detection = (() => {
 		gl.uniform1f(program4.height, height);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture2);
-		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
+		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels
 		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormatTexture, 1, 2, 0, gl.RGBA, texturePrecision, null);
 
 		gl.viewport(0, 0, 1, 2);
@@ -459,7 +459,7 @@ const Detection = (() => {
 		gl.uniform1f(programColor.height, height);
 
 		gl.bindTexture(gl.TEXTURE_2D, outputTexture);
-		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels)
+		// target, level, internalFormat, width, height, border, format, type, ArrayBufferView? pixels
 		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormatTexture, 10, 10, 0, gl.RGBA, texturePrecision, null);
 
 		gl.viewport(0, 0, 10, 10);
@@ -605,7 +605,7 @@ const Detection = (() => {
 
 	/**
 	 * Read output data from frame buffer after second step.
-	 * Can be used to obtain resulting coordinates which can be send over the network somewhere else.
+	 * Can be used to obtain resulting coordinates which can be sent over the network somewhere else.
 	 */
 	function readData2() {
 		gl.readPixels(0, 0, 1, 2, gl.RGBA, gl.FLOAT, readBuffer2);
