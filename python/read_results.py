@@ -44,6 +44,8 @@ print("True negative:", true_negative_count)
 print("False positive:", false_positive_count)
 print("False negative:", false_negative_count)
 
+print(*results, sep='\n')
+
 # print(len(distances))
 # print(str(round(statistics.mean(distances), 6)).replace(".", ","))
 # print(str(round(statistics.median(distances), 6)).replace(".", ","))

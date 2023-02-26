@@ -10,7 +10,7 @@ uniform sampler2D coordTexture;
 void main(void) {
 	vec4 cameraColor = texture2D(texture, vec2(gl_FragCoord.x / width, gl_FragCoord.y / height));
 	if (drawSquare == 0.0) {
-		// draw two lines to point detected marker
+		// draw two lines where the detected marker is on the crossing of the lines
 		float xCoord = texture2D(coordTexture, vec2(0.5, 0.25)).r;
 		float yCoord = texture2D(coordTexture, vec2(0.5, 0.75)).r;
 //		gl_FragColor = vec4(xCoord, yCoord, 0, 1);
