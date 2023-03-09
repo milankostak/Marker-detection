@@ -106,7 +106,7 @@ const Detection = (() => {
 			internalFormatTexture = gl.RGBA;
 			console.log("WebGL1 was initialized.");
 
-			if (MEASURE_GPU) timerQueryExt = gl.getExtension('EXT_disjoint_timer_query');
+			if (MEASURE_GPU) timerQueryExt = gl.getExtension("EXT_disjoint_timer_query");
 		} else {
 			// necessary extension for WebGL2
 			const extColorBufferFloat = gl.getExtension("EXT_color_buffer_float");
@@ -120,7 +120,7 @@ const Detection = (() => {
 			console.log("WebGL2 was initialized.");
 
 			// https://www.khronos.org/registry/webgl/extensions/EXT_disjoint_timer_query_webgl2/
-			if (MEASURE_GPU) timerQueryExt = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+			if (MEASURE_GPU) timerQueryExt = gl.getExtension("EXT_disjoint_timer_query_webgl2");
 		}
 		if (MEASURE_GPU && !timerQueryExt) console.log("Timer query extension is not supported.");
 		return true;
