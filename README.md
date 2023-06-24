@@ -21,3 +21,8 @@ This version is based on the second version. The main focus of works on this ver
 https://github.com/milankostak/Marker-detection/releases/tag/v3.0
 
 For more details read our paper: [Adaptive Detection of Single-color Marker with WebGL](https://doi.org/10.1007/978-3-030-58465-8_29)
+
+## Version 4
+This version is based on the third version. All ideas remain the same, but the implementation is done with WebGL compute shaders.
+
+https://github.com/milankostak/Marker-detection/releases/tag/v4.0
