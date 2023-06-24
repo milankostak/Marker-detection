@@ -26,8 +26,9 @@ vec3 rgb2hsv(vec3 c) {
 
 float distanceInHsv(float fixedTargetHue, float fixedCurrentHue) {
     float diff = abs(fixedTargetHue - fixedCurrentHue);
-    float weight = pow((hueThreshold - diff) / hueThreshold, 0.5);
-    return weight;// in range <0;1>
+    float ratio = (hueThreshold - diff) / hueThreshold;
+    float weight = pow(ratio, 0.5);
+    return weight; // in range <0;1>
 }
 
 float getPixelWeight(vec2 texCoords) {

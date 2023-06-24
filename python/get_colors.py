@@ -81,7 +81,7 @@ for i in range(count):
     blur_dst = cv2.GaussianBlur(src=img, ksize=(11, 11), sigmaX=0)
     # cv2.imshow("Blur", blur_dst)
     # cv2.imwrite("blur.png", blur_dst)
-    masked = cv2.bitwise_and(blur_dst, blur_dst, mask=mask)
+    # masked = cv2.bitwise_and(blur_dst, blur_dst, mask=mask)
     # cv2.imshow("masked", masked)
     # cv2.imwrite("masked.png", masked)
 
@@ -110,7 +110,7 @@ for i in range(count):
 
     fig, ax = plt.subplots()
     plt.rcParams.update({"font.size": 13})
-    plt.title(f"Histogram odstínů (hue)")
+    plt.title("Histogram odstínů (hue)")
 
     plt.xlabel("hodnota odstínu (hue)", fontsize=13)
     plt.ylabel("počet pixelů", fontsize=13)
