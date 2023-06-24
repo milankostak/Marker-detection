@@ -93,6 +93,105 @@
 		setTimeout(interval, 1);
 	}
 
+	function test2(start, end) {
+		// Utils.getDataFromFile("/python/test-hue2.txt", (text) => {
+		// 	const testData = text.split("\r\n")
+		// 			.map(t => t.split(" "))
+		// 			.map(t => [t[0], t[1] * 1, t[2] * 1]);
+		//
+		// 	for (let i = 467; i < 475; i++) {
+		// 		const img = new Image();
+		// 		img.onload = () => {
+		// 			testAllHues(testData, i)
+		// 		};
+		// 		img.src = "\\python\\draw3-test\\" + testData[i][0];
+		// 		// break;
+		// 	}
+		// });
+		// return;
+
+		if (start === undefined) start = 0;
+		let loaded = 0;
+		const results = [];
+		Utils.getDataFromFile("/python/hue3.txt", (text) => {
+			const testData = text.split("\r\n")
+					.map(t => t.split(" "))
+					.map(t => [t[0], t[1] * 1]);
+			if (end === undefined) end = testData.length;
+			console.log(testData);
+
+			const interval = function() {
+				if (loaded < end) {
+					setTimeout(interval, 50);
+				} else {
+					console.log(results.sort().reduce((a, b) => a + "\n" + b))
+				}
+			};
+			setTimeout(interval, 1);
+
+			for (let i = start; i < end; i++) {
+				const name = testData[i][0]
+				const img = new Image();
+				img.onload = () => {
+					const color = testData[i][1];
+					Detection.setExternalColor(color);
+					Detection.setupAfterVideoStreamIsReady(img.width, img.height);
+					Detection.updateTexture(img);
+					Detection.repaint(true);
+					const readData = Detection.getReadBuffer2();
+					if (readData[0] === 0 && readData[4] === 0) {
+						results.push(name + ",-1,-1");
+					} else {
+						const xCoord = readData[0];
+						const yCoord = img.height - readData[4];
+
+						const pixelsCount = readData[2]
+						const a = Math.sqrt(pixelsCount) * 2.1;
+						const aHalf = a / 2.0;
+
+						const x1 = xCoord - aHalf;
+						const x2 = xCoord + aHalf;
+						const y1 = yCoord - aHalf;
+						const y2 = yCoord + aHalf;
+						results.push(name + "," + xCoord + "," + yCoord + "," + pixelsCount + "," + x1 + "," + y1 + "," + x2 + "," + y2);
+					}
+					loaded++;
+				};
+				img.src = name;
+			}
+		});
+	}
+
+	function testAllHues(testData, i) {
+		const gtX = testData[i][1];
+		const gtY = testData[i][2];
+		let min = 99999;
+		let hueForMin = 0;
+		for (let j = 0; j < 360; j++) {
+			Detection.setExternalColor(j);
+			Detection.setupAfterVideoStreamIsReady(img.width, img.height);
+			Detection.updateTexture(img);
+			Detection.repaint(true);
+			const readData = Detection.getReadBuffer2();
+			console.log(readData);
+			if (readData[0] === 0 && readData[4] === 0) {
+				// results.push(name + ",-1,-1");
+				// console.log(j, "-1")
+			} else {
+				// results.push(name + "," + readData[0] + "," + (img.height - readData[4]));
+				const x2 = readData[0];
+				const y2 = (img.height - readData[4]);
+				const distance = Math.sqrt(Math.pow(x2 - gtX, 2) + Math.pow(y2 - gtY, 2));
+				console.log(j, distance);
+				if (min > distance) {
+					min = distance;
+					hueForMin = j;
+				}
+			}
+		}
+		console.log("Minimum", testData[i][0], hueForMin, min);
+	}
+
 	/**
 	 * Event handler when camera is ready to give pictures
 	 */
@@ -106,7 +205,7 @@
 		if (!TEST) {
 			window.requestAnimationFrame(animate);
 		} else {
-			test(0, 139);
+			test2(0, 139);
 		}
 	}
 
